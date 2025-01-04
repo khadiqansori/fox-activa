@@ -1,0 +1,88 @@
+import { NavLink } from "react-router-dom"
+
+const Master = () => {
+    return (
+        <>
+            <div className="sidebar-heading">Master</div>
+
+            <li className="nav-item">
+                <NavLink className="nav-link" to="/employees">
+                    <i className="fas fa-fw fa-address-card"></i>
+                    <span>Karyawan</span></NavLink>
+            </li>
+
+            <li className="nav-item">
+                <NavLink className="nav-link" to="/roles">
+                    <i className="fas fa-fw fa-user-tie"></i>
+                    <span>Jabatan</span></NavLink>
+            </li>
+
+            <li className="nav-item">
+                <NavLink className="nav-link" to="/permission-leaves">
+                    <i className="fas fa-fw fa-clipboard-list"></i>
+                    <span>Jenis Izin / Cuti</span></NavLink>
+            </li>
+
+            <hr className="sidebar-divider" />
+        </>
+    )
+}
+
+const Sidebar = () => {
+    return (
+        <ul className="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+            <a className="sidebar-brand d-flex align-items-center justify-content-center" href="/">
+                <div className="sidebar-brand-icon rotate-n-15">
+                    <i className="fas fa-clipboard"></i>
+                </div>
+                <div className="sidebar-brand-text mx-3">Fox Activa</div>
+            </a>
+
+            <hr className="sidebar-divider my-0" />
+
+            <li className="nav-item">
+                <NavLink className="nav-link" to="/">
+                    <i className="fas fa-fw fa-home"></i>
+                <span>Beranda</span></NavLink>
+            </li>
+
+            <hr className="sidebar-divider" />
+
+            {localStorage.getItem("role") == "hr" ? <Master /> : ""}
+
+            <div className="sidebar-heading">Aplikasi</div>
+
+            <li className="nav-item">
+                <NavLink className="nav-link" to="/infos">
+                    <i className="fas fa-fw fa-user"></i>
+                    <span>Info Saya</span></NavLink>
+            </li>
+
+            <li className="nav-item">
+                <NavLink className="nav-link" to="/attendance">
+                    <i className="fas fa-fw fa-clipboard"></i>
+                    <span>Absensi</span></NavLink>
+            </li>
+
+            <li className="nav-item">
+                <NavLink className="nav-link" to="/attendance-logs">
+                    <i className="fas fa-fw fa-business-time"></i>
+                    <span>Log Kehadiran Saya</span></NavLink>
+            </li>
+
+            <li className="nav-item">
+                <NavLink className="nav-link" to="/performances">
+                    <i className="fas fa-fw fa-chart-area"></i>
+                    <span>Tinjauan Kinerja</span></NavLink>
+            </li>
+
+            <li className="nav-item">
+                <NavLink className="nav-link" to="/job-management">
+                    <i className="fas fa-fw fa-calendar-check"></i>
+                    <span>Manajemen Pekerjaan</span></NavLink>
+            </li>
+        </ul>
+    )
+}
+
+export default Sidebar
