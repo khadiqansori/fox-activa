@@ -18,7 +18,7 @@ const Master = () => {
             </li>
 
             <li className="nav-item">
-                <NavLink className="nav-link" to="/permission-leaves">
+                <NavLink className="nav-link" to="/permission-types">
                     <i className="fas fa-fw fa-clipboard-list"></i>
                     <span>Jenis Izin / Cuti</span></NavLink>
             </li>
@@ -29,6 +29,9 @@ const Master = () => {
 }
 
 const Sidebar = () => {
+    const userInfo = localStorage.getItem('user_info');
+    const role = JSON.parse(userInfo).role
+
     return (
         <ul className="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
             <a className="sidebar-brand d-flex align-items-center justify-content-center" href="/">
@@ -48,7 +51,7 @@ const Sidebar = () => {
 
             <hr className="sidebar-divider" />
 
-            {localStorage.getItem("role") == "hr" ? <Master /> : ""}
+            {role?.includes("hr") ? <Master /> : null}
 
             <div className="sidebar-heading">Aplikasi</div>
 
@@ -59,7 +62,7 @@ const Sidebar = () => {
             </li>
 
             <li className="nav-item">
-                <NavLink className="nav-link" to="/attendance">
+                <NavLink className="nav-link" to="/attendances">
                     <i className="fas fa-fw fa-clipboard"></i>
                     <span>Absensi</span></NavLink>
             </li>

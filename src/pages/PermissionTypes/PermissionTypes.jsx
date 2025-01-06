@@ -19,14 +19,13 @@ import 'datatables.net-buttons/js/buttons.html5.mjs';
 import 'datatables.net-buttons/js/buttons.print.mjs';
 import 'datatables.net-buttons/js/buttons.colVis.mjs';
 
-
-const Employees = () => {
+const PermissionTypes = () => {
     DataTable.use(DT);
 
     const [data, setData] = useState([]);
     const fetchData = async () => {
         try {
-            const response = await axios.get("http://localhost:8989/users", {
+            const response = await axios.get("http://localhost:8989/permission-types", {
                 headers: {
                     Authorization: `Bearer 023khjsdH7123j30-whjdf1-0sadkD2023jh43-0dfkvu123G712j0dfkj3`,
                 },
@@ -34,11 +33,10 @@ const Employees = () => {
 
             const tableData = response.data.data.map((row) => [
                 row.id,
-                row.name,
-                row.phone,
-                row.email,
+                row.name.toUpperCase(),
+                (row.is_reduce_leave ? 'Ya' : 'Tidak').toUpperCase(),
                 `<div key=${row.id}>
-                    <a href="/employees/update/${row.id}" class="nav-link btn btn-warning btn-icon-split mb-3">
+                    <a href="/roles/update/${row.id}" class="nav-link btn btn-warning btn-icon-split mb-3">
                         <span class="icon text-white-50">
                             <i class="fas fa-fw fa-pen"></i>
                         </span>
@@ -78,7 +76,7 @@ const Employees = () => {
                 try {
                     await axios({
                         method: 'delete',
-                        url: 'http://localhost:8989/delete-user',
+                        url: 'http://localhost:8989/delete-permission-type',
                         headers: {
                             'Content-Type': 'application/json',
                             Authorization: `Bearer ${token}`,
@@ -115,10 +113,10 @@ const Employees = () => {
     return (
         <div className="container-fluid">
             <div className="d-sm-flex align-items-center justify-content-between mb-4">
-                <h1 className="h3 mb-0 text-gray-800">Karyawan</h1>
+                <h1 className="h3 mb-0 text-gray-800">Jenis Izin</h1>
             </div>
 
-            <a href="/employees/create" className="nav-link btn btn-primary btn-icon-split mb-3">
+            <a href="/permission-types/create" className="nav-link btn btn-primary btn-icon-split mb-3">
                 <span className="icon text-white-50">
                     <i className="fas fa-fw fa-plus"></i>
                 </span>
@@ -129,7 +127,7 @@ const Employees = () => {
                 <div className="col-12">
                     <div className="card shadow mb-4">
                         <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                            <h6 className="m-0 font-weight-bold text-primary">Data Karyawan</h6>
+                            <h6 className="m-0 font-weight-bold text-primary">Data Jenis Izin</h6>
                         </div>
                         <div className="card-body">
                             <div className="table-responsive">
@@ -146,10 +144,9 @@ const Employees = () => {
                                 >
                                     <thead>
                                         <tr>
-                                            <th>NIK</th>
-                                            <th>Nama Lengkap</th>
-                                            <th>No. HP</th>
-                                            <th>Email</th>
+                                            <th>ID Izin</th>
+                                            <th>Nama Izin</th>
+                                            <th>Kurangi Cuti</th>
                                             <th className="nowrap">Aksi</th>
                                         </tr>
                                     </thead>
@@ -160,7 +157,7 @@ const Employees = () => {
                 </div>
             </div>
         </div>
-    );
-};
+    )
+}
 
-export default Employees;
+export default PermissionTypes

@@ -1,75 +1,96 @@
 import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import axios from 'axios';
 
-function EmployeesCreate() {
-    // Field Input
+const EmployeesUpdate = () => {
+    const { id } = useParams();
+    
     const [fullname, setFullname] = useState('');
     const [phone, setPhone] = useState(0);
     const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [role, setRole] = useState(0);
+    const [role, setRole] = useState('');
     const [address, setAddress] = useState('');
     const [photo, setPhoto] = useState('');
-
-    // Roles option
     const [roles, setRoles] = useState([]);
-
-    // Response
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
 
+    // Mengambil data roles dari API
     useEffect(() => {
-        // Ambil data roles dari API
         const fetchRoles = async () => {
             try {
                 const token = localStorage.getItem('token');
                 const response = await axios.get('http://localhost:8989/roles', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    },
+                    headers: { 'Authorization': `Bearer ${token}` },
                 });
-                setRoles(response.data.data); // Asumsi API mengembalikan array roles
+                setRoles(response.data.data); // Set roles data
             } catch (error) {
-                console.error('Error fetching roles:', error);
                 setErrorMessage('Failed to load roles');
+                console.error('Error fetching roles:', error);
             }
         };
 
         fetchRoles();
     }, []);
 
+    // Mengambil data user berdasarkan id untuk update
+    useEffect(() => {
+        const fetchOldData = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await axios.get(`http://localhost:8989/user/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` },
+                });
+
+                const data = response.data.data;
+                setFullname(data.name);
+                setPhone(data.phone);
+                setEmail(data.email);
+                setRole(data.role);
+                setAddress(data.address);
+                setPhoto(data.photo);
+
+            } catch (error) {
+                setErrorMessage('Failed to load user data');
+                console.error('Error fetching user data:', error);
+            }
+        };
+
+        fetchOldData();
+    }, [id]);
+
     const handleSubmit = async (event) => {
         event.preventDefault();
 
-        const token = localStorage.getItem('token'); // Pastikan token disimpan di localStorage
-
+        const token = localStorage.getItem('token');
         const data = {
+            id: parseInt(id),
             name: fullname,
             phone: phone,
             email: email,
-            password: password,
             role: role,
             address: address,
-            photo: photo, // Jika ada inputan photo
+            photo: photo,
+            enabled: true
         };
 
         try {
-            const response = await axios.post(
-                'http://localhost:8989/create-user',
+            const response = await axios.put(
+                'http://localhost:8989/update-user',
                 data,
                 {
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
+                        'Authorization': `Bearer ${token}`,  // Menyertakan Bearer token
                     },
                 }
             );
-
-            setSuccessMessage('User created successfully!');
-            console.log(response.data);
-            window.location.href = '/employees';
+    
+            console.log(response)
+            setSuccessMessage('User updated successfully!');
+            window.location.href = '/employees'; // Redirect setelah sukses
         } catch (error) {
-            console.error('Error creating user:', error);
+            console.error('Error updating user:', error);
             setErrorMessage(error.response?.data?.message || 'An error occurred');
         }
     };
@@ -77,14 +98,14 @@ function EmployeesCreate() {
     return (
         <div className="container-fluid">
             <div className="d-sm-flex align-items-center justify-content-between mb-4">
-                <h1 className="h3 mb-0 text-gray-800">Tambah Karyawan</h1>
+                <h1 className="h3 mb-0 text-gray-800">Edit Karyawan</h1>
             </div>
 
             <div className="row">
                 <div className="col-12">
                     <div className="card shadow mb-4">
                         <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                            <h6 className="m-0 font-weight-bold text-primary">Form Tambah Karyawan</h6>
+                            <h6 className="m-0 font-weight-bold text-primary">Form Edit Karyawan</h6>
                         </div>
                         <div className="card-body">
                             <form onSubmit={handleSubmit}>
@@ -121,18 +142,6 @@ function EmployeesCreate() {
                                         name="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        required
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label htmlFor="password" className="form-label">Password</label>
-                                    <input
-                                        type="password"
-                                        className="form-control"
-                                        id="password"
-                                        name="password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
                                         required
                                     />
                                 </div>
@@ -198,4 +207,4 @@ function EmployeesCreate() {
     );
 }
 
-export default EmployeesCreate;
+export default EmployeesUpdate;

@@ -1,78 +1,104 @@
-import {Routes, Route} from 'react-router-dom'
+import PropTypes from 'prop-types';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 
-import Sidebar from './components/Sidebar.jsx'
-import Topbar from './components/Topbar.jsx'
-import HomePage from './pages/HomePage.jsx'
-import Employees from './pages/Employees/Employees.jsx'
-import EmployeesCreate from './pages/Employees/EmployeesCreate.jsx'
-import Roles from './pages/Roles.jsx'
-import PermissionLeaves from './pages/PermissionLeaves.jsx'
-import Info from './pages/Info.jsx'
-import Attendance from './pages/Attendance.jsx'
-import AttendanceLog from './pages/AttendanceLog.jsx'
-import Performance from './pages/Performance.jsx'
-import JobManagement from './pages/JobManagement.jsx'
+import Sidebar from './components/Sidebar.jsx';
+import Topbar from './components/Topbar.jsx';
+import Login from './pages/Login/Login.jsx';
+import HomePage from './pages/HomePage.jsx';
+import Employees from './pages/Employees/Employees.jsx';
+import EmployeesCreate from './pages/Employees/EmployeesCreate.jsx';
+import EmployeesUpdate from './pages/Employees/EmployeesUpdate.jsx';
+import Roles from './pages/Roles/Roles.jsx';
+import RolesCreate from './pages/Roles/RolesCreate.jsx';
+import PermissionTypes from './pages/PermissionTypes/PermissionTypes.jsx';
+import PermissionTypesCreate from './pages/PermissionTypes/PermissionTypesCreate.jsx';
+import Info from './pages/Info.jsx';
+import Attendances from './pages/Attendances/Attendances.jsx';
+import AttendanceLog from './pages/AttendanceLog.jsx';
+import Performance from './pages/Performance.jsx';
+import JobManagement from './pages/JobManagement.jsx';
+import RolesUpdate from './pages/Roles/RolesUpdate.jsx';
 
-
-function App() {
-  return (
-    <div id="wrapper">
-      <Sidebar />
-
-      <div id="content-wrapper" className="d-flex flex-column">
-        <div id="content">
-          <Topbar />
-
-          <Routes>
-            <Route>
-              <Route path="/" element={<HomePage />} />
-
-              <Route path="/employees" element={<Employees />} />
-              <Route path="/employees/create" element={<EmployeesCreate />} />
-              <Route path="/employees/edit" element={<Employees />} />
-              <Route path="/employees/delete" element={<Employees />} />
-
-              <Route path="/roles" element={<Roles />} />
-              <Route path="/roles/create" element={<Roles />} />
-              <Route path="/roles/edit" element={<Roles />} />
-              <Route path="/roles/delete" element={<Roles />} />
-
-              <Route path="/permission-leaves" element={<PermissionLeaves />} />
-              <Route path="/permission-leaves/create" element={<PermissionLeaves />} />
-              <Route path="/permission-leaves/edit" element={<PermissionLeaves />} />
-              <Route path="/permission-leaves/delete" element={<PermissionLeaves />} />
-              
-              <Route path="/infos" element={<Info />} />
-              <Route path="/infos/create" element={<Info />} />
-              <Route path="/infos/edit" element={<Info />} />
-              <Route path="/infos/delete" element={<Info />} />
-
-              <Route path="/attendance" element={<Attendance />} />
-              <Route path="/attendance/create" element={<Attendance />} />
-              <Route path="/attendance/edit" element={<Attendance />} />
-              <Route path="/attendance/delete" element={<Attendance />} />
-
-              <Route path="/attendance-logs" element={<AttendanceLog />} />
-              <Route path="/attendance-logs/create" element={<AttendanceLog />} />
-              <Route path="/attendance-logs/edit" element={<AttendanceLog />} />
-              <Route path="/attendance-logs/delete" element={<AttendanceLog />} />
-
-              <Route path="/performances" element={<Performance />} />
-              <Route path="/performances/create" element={<Performance />} />
-              <Route path="/performances/edit" element={<Performance />} />
-              <Route path="/performances/delete" element={<Performance />} />
-
-              <Route path="/job-management" element={<JobManagement />} />
-              <Route path="/job-management/create" element={<JobManagement />} />
-              <Route path="/job-management/edit" element={<JobManagement />} />
-              <Route path="/job-management/delete" element={<JobManagement />} />
-
-            </Route>
-          </Routes>
-        </div>
-      </div>
-    </div>
-  )
+const Logout = () => {
+  localStorage.clear();
 }
 
-export default App
+const MainLayout = ({ children }) => (
+  <div id="wrapper">
+    <Sidebar />
+    <div id="content-wrapper" className="d-flex flex-column">
+      <div id="content">
+        <Topbar />
+        {children}
+      </div>
+    </div>
+  </div>
+);
+
+MainLayout.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
+// HOC untuk proteksi rute
+const ProtectedRoute = ({ element }) => {
+  const token = localStorage.getItem('token');
+
+  // Jika token tidak ada, arahkan ke halaman login
+  if (!token) {
+    localStorage.clear();
+
+    return <Navigate to="/login" replace />;
+  }
+
+  return element;
+};
+
+ProtectedRoute.propTypes = {
+  element: PropTypes.node.isRequired,
+};
+
+function App() {
+  const location = useLocation();
+  const isLoginPage = location.pathname === '/login';
+
+  return (
+    <Routes>
+      {/* Login Route */}
+      <Route path="/login" element={<Login />} />
+
+      {/* Main Layout Routes */}
+      {!isLoginPage && (
+        <Route
+          path="*"
+          element={
+            <ProtectedRoute
+              element={
+                <MainLayout>
+                  <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/employees" element={<Employees />} />
+                    <Route path="/employees/create" element={<EmployeesCreate />} />
+                    <Route path="/employees/update/:id" element={<EmployeesUpdate />} />
+                    <Route path="/roles" element={<Roles />} />
+                    <Route path="/roles/create" element={<RolesCreate />} />
+                    <Route path="/roles/update/:id" element={<RolesUpdate />} />
+                    <Route path="/permission-types" element={<PermissionTypes />} />
+                    <Route path="/permission-types/create" element={<PermissionTypesCreate />} />
+                    <Route path="/infos" element={<Info />} />
+                    <Route path="/attendances" element={<Attendances />} />
+                    <Route path="/attendance-logs" element={<AttendanceLog />} />
+                    <Route path="/performances" element={<Performance />} />
+                    <Route path="/job-management" element={<JobManagement />} />
+                    <Route path="/logout" element={<Logout />} />
+                  </Routes>
+                </MainLayout>
+              }
+            />
+          }
+        />
+      )}
+    </Routes>
+  );
+}
+
+export default App;

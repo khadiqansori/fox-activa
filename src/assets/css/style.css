@@ -15,6 +15,35 @@ div.dt-search label {
     margin-right: 10px;
 }
 
+div.dt-buttons.btn-group {
+    margin-bottom: 2rem;
+    gap: 10px;
+}
+
+div.dt-buttons.btn-group button {
+    border-radius: .35rem !important;
+}
+
+.btn.buttons-csv {
+    background-color: #37B8CC;
+    border: none;
+}
+
+.btn.buttons-excel {
+    background-color: #1BC88A;
+    border: none;
+}
+
+.btn.buttons-pdf {
+    background-color: #E74A3B;
+    border: none;
+}
+
+.btn.buttons-print {
+    background-color: #4E73DF;
+    border: none;
+}
+
 /* div.dt-search input {
     display: block;
     width: 100%;
