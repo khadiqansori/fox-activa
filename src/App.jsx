@@ -14,13 +14,16 @@ import PermissionTypes from './pages/PermissionTypes/PermissionTypes.jsx';
 import PermissionTypesCreate from './pages/PermissionTypes/PermissionTypesCreate.jsx';
 import Info from './pages/Info.jsx';
 import Attendances from './pages/Attendances/Attendances.jsx';
-import AttendanceLog from './pages/AttendanceLog.jsx';
+import AttendanceLog from './pages/Attendances/AttendanceLog.jsx';
 import Performance from './pages/Performance.jsx';
-import JobManagement from './pages/JobManagement.jsx';
+import TaskManagement from './pages/TaskManagement/TaskManagement.jsx';
 import RolesUpdate from './pages/Roles/RolesUpdate.jsx';
+import TaskManagementCreate from './pages/TaskManagement/TaskManagementCreate.jsx';
+import TaskManagementEdit from './pages/TaskManagement/TaskManagementUpdate.jsx';
 
 const Logout = () => {
   localStorage.clear();
+  window.location.reload();
 }
 
 const MainLayout = ({ children }) => (
@@ -88,7 +91,9 @@ function App() {
                     <Route path="/attendances" element={<Attendances />} />
                     <Route path="/attendance-logs" element={<AttendanceLog />} />
                     <Route path="/performances" element={<Performance />} />
-                    <Route path="/job-management" element={<JobManagement />} />
+                    <Route path="/task-management" element={<TaskManagement />} />
+                    <Route path="/task-management/create" element={<TaskManagementCreate />} />
+                    <Route path="/task-management/update/:id" element={<TaskManagementEdit />} />
                     <Route path="/logout" element={<Logout />} />
                   </Routes>
                 </MainLayout>

@@ -1,13 +1,18 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import Config from '../Config';
 
 function AttendanceLog() {
     const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth() + 1; // Bulan dimulai dari 0, jadi tambahkan 1
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth() + 1; // Bulan dimulai dari 0, jadi tambahkan 1
+
+    const [selectedYear, setSelectedYear] = useState(currentYear);
+    const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+    const [data, setData] = useState([]);
 
     // Mendapatkan jumlah hari dalam bulan
-    const daysInMonth = new Date(year, month, 0).getDate();
+    const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
 
     // Array nama hari dalam bahasa Indonesia
     const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
@@ -17,22 +22,23 @@ function AttendanceLog() {
 
     // Fungsi untuk menentukan apakah hari adalah Sabtu atau Minggu
     const isWeekend = (day) => {
-        const date = new Date(year, month - 1, day); // month - 1 karena bulan di JS berbasis 0
+        const date = new Date(selectedYear, selectedMonth - 1, day);
         const dayOfWeek = date.getDay();
         return dayOfWeek === 6 || dayOfWeek === 0; // 6 = Sabtu, 0 = Minggu
     };
 
-    const [data, setData] = useState([]);
     const fetchData = async () => {
         const token = localStorage.getItem('token');
-
+        
         try {
-            const response = await axios.get("http://localhost:8989/attendances", {
+            const response = await axios.get(`${Config.BaseUrl}/attendances`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
+                params: {
+                    "date.gte": `${selectedYear}-${selectedMonth}-01`
+                },
             });
-
             setData(response.data.data);
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -41,29 +47,28 @@ function AttendanceLog() {
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [selectedYear, selectedMonth]);
 
     // Generate data untuk setiap hari
     const days = Array.from({ length: daysInMonth }, (_, index) => {
         const date = index + 1;
-        const formattedDate = `${formatTwoDigits(date)}-${formatTwoDigits(month)}-${year}`;
-        const dayName = dayNames[new Date(year, month - 1, date).getDay()];
-        
-        const dateFormat = `${year}-${formatTwoDigits(month)}-${formatTwoDigits(date)}`;
+        const formattedDate = `${formatTwoDigits(date)}-${formatTwoDigits(selectedMonth)}-${selectedYear}`;
+        const dayName = dayNames[new Date(selectedYear, selectedMonth - 1, date).getDay()];
+
+        const dateFormat = `${selectedYear}-${formatTwoDigits(selectedMonth)}-${formatTwoDigits(date)}`;
         let clockIn = "-"
         let clockOut = "-"
         let isLate = false
 
         {data.map((item) => {
-            if (item.date == dateFormat) {
-                if (item.type == "clock_in") {
-                    clockIn = item.time
-
+            if (item.date === dateFormat) {
+                if (item.type === "clock_in") {
+                    clockIn = item.time;
                     if (item.minute_late > 0) {
-                        isLate = true
+                        isLate = true;
                     }
-                } else if (item.type == "clock_out") {
-                    clockOut = item.time
+                } else if (item.type === "clock_out") {
+                    clockOut = item.time;
                 }
             }
         })}
@@ -75,7 +80,7 @@ function AttendanceLog() {
             isWeekend: isWeekend(date),
             clockIn,
             clockOut,
-            isLate
+            isLate,
         };
     });
 
@@ -83,6 +88,42 @@ function AttendanceLog() {
         <div className="container-fluid">
             <div className="d-sm-flex align-items-center justify-content-between mb-4">
                 <h1 className="h3 mb-0 text-gray-800">Log Kehadiran</h1>
+            </div>
+
+            {/* Filter Tahun dan Bulan */}
+            <div className="row mb-3">
+                <div className="col-2">
+                    <label htmlFor="year" className="form-label">Pilih Tahun</label>
+                    <select
+                        id="year"
+                        className="form-control"
+                        value={selectedYear}
+                        onChange={(e) => setSelectedYear(Number(e.target.value))}
+                    >
+                        {/* Bisa dinamiskan dengan range tahun tertentu */}
+                        <option value={currentYear}>{currentYear}</option>
+                        <option value={currentYear - 1}>{currentYear - 1}</option>
+                        <option value={currentYear - 2}>{currentYear - 2}</option>
+                        {/* Tambahkan lebih banyak tahun jika diperlukan */}
+                    </select>
+                </div>
+
+                <div className="col-2">
+                    <label htmlFor="month" className="form-label">Pilih Bulan</label>
+                    <select
+                        id="month"
+                        className="form-control"
+                        value={selectedMonth}
+                        onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                    >
+                        {/* Dropdown bulan */}
+                        {[...Array(12).keys()].map((monthIndex) => (
+                            <option key={monthIndex} value={monthIndex + 1}>
+                                {new Date(selectedYear, monthIndex).toLocaleString("id-ID", { month: "long" })}
+                            </option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             <div className="row">
@@ -125,30 +166,7 @@ function AttendanceLog() {
                 </div>
             </div>
         </div>
-        
-        // <table border="1" style={{ width: "100%", textAlign: "center" }}>
-        //     <thead>
-        //         <tr>
-        //         <th>Tanggal</th>
-        //         <th>Hari</th>
-        //         </tr>
-        //     </thead>
-        //     <tbody>
-        //         {days.map(({ date, dayName, isWeekend }) => (
-        //         <tr
-        //             key={date}
-        //             style={{
-            //             backgroundColor: isWeekend ? "red" : "white",
-            //             color: isWeekend ? "white" : "black",
-        //             }}
-        //         >
-        //             <td>{date}</td>
-        //             <td>{dayName}</td>
-        //         </tr>
-        //         ))}
-        //     </tbody>
-        // </table>
     );
 }
 
-export default AttendanceLog
+export default AttendanceLog;

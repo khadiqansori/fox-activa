@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import Config from '../Config';
 
 const Attendances = () => {
     const today = new Date();
@@ -34,6 +35,16 @@ const Attendances = () => {
         // Buat interval untuk memperbarui waktu setiap detik
         const timer = setInterval(() => {
             setCurrentTime(today);
+
+            // if (hour > 18 || (hour === 18 && minute > 0)) {
+            //     if (btnClockOut.current) {
+            //         btnClockOut.current.disabled = false;
+            //     }
+            // } else {
+            //     if (btnClockOut.current) {
+            //         btnClockOut.current.disabled = true;
+            //     }
+            // }
         }, 1000);
 
         // Bersihkan interval saat komponen di-unmount
@@ -59,7 +70,7 @@ const Attendances = () => {
         const dateFormat = `${year}-${formatTwoDigits(month)}-${formatTwoDigits(day)}`;
 
         try {
-            const response = await axios.get(`http://localhost:8989/attendances?date.eq=${dateFormat}` , {
+            const response = await axios.get(`${Config.BaseUrl}/attendances?date.eq=${dateFormat}` , {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -82,7 +93,7 @@ const Attendances = () => {
         const time = `${year}-${formatTwoDigits(month)}-${formatTwoDigits(day)} ${formatTwoDigits(hour)}:${formatTwoDigits(minute)}:${formatTwoDigits(second)}`;
 
         try {
-            await axios.post('http://localhost:8989/create-attendance', {
+            await axios.post(`${Config.BaseUrl}/create-attendance`, {
                 type: 'clock_in',
                 time: time,
                 latitude: latitude,
@@ -103,11 +114,20 @@ const Attendances = () => {
     const handleClockOut = async () => {
         const token = localStorage.getItem('token');
 
+        if (hour < 18) {
+            const confirmClockOut = window.confirm(
+                "Anda mencoba melakukan Clock Out sebelum jam 18:00. Apakah Anda yakin ingin melanjutkan?"
+            );
+            if (!confirmClockOut) {
+                return; // Batalkan proses jika pengguna memilih "Batal"
+            }
+        }
+
         // Format waktu dalam format "yyyy-mm-dd HH:MM:ss"
         const time = `${year}-${formatTwoDigits(month)}-${formatTwoDigits(day)} ${formatTwoDigits(hour)}:${formatTwoDigits(minute)}:${formatTwoDigits(second)}`;
 
         try {
-            await axios.post('http://localhost:8989/create-attendance', {
+            await axios.post(`${Config.BaseUrl}/create-attendance`, {
                 type: 'clock_out',
                 time: time,
                 latitude: latitude,

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import Config from '../Config';
 
 const Login = () => {
     useEffect(() => {
@@ -23,7 +24,7 @@ const Login = () => {
 
         try {
             const response = await axios.get(
-                'http://localhost:8989/users/login',
+                `${Config.BaseUrl}/users/login`,
                 {
                     headers: {
                         Authorization: `Basic ${encodedCredentials}`,

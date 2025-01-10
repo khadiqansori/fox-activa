@@ -74,15 +74,15 @@ const Sidebar = () => {
             </li>
 
             <li className="nav-item">
-                <NavLink className="nav-link" to="/performances">
-                    <i className="fas fa-fw fa-chart-area"></i>
-                    <span>Tinjauan Kinerja</span></NavLink>
+                <NavLink className="nav-link" to="/task-management">
+                    <i className="fas fa-fw fa-calendar-check"></i>
+                    <span>Manajemen Pekerjaan</span></NavLink>
             </li>
 
             <li className="nav-item">
-                <NavLink className="nav-link" to="/job-management">
-                    <i className="fas fa-fw fa-calendar-check"></i>
-                    <span>Manajemen Pekerjaan</span></NavLink>
+                <NavLink className="nav-link" to="/performances">
+                    <i className="fas fa-fw fa-chart-area"></i>
+                    <span>Tinjauan Kinerja</span></NavLink>
             </li>
         </ul>
     )

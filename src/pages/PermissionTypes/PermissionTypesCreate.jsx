@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import Config from '../Config';
 
 function PermissionTypesCreate() {
     // Field Input
@@ -22,7 +23,7 @@ function PermissionTypesCreate() {
 
         try {
             const response = await axios.post(
-                'http://localhost:8989/create-permission-type',
+                `${Config.BaseUrl}/create-permission-type`,
                 data,
                 {
                     headers: {

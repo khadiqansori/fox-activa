@@ -4,6 +4,7 @@ import DataTable from 'datatables.net-react';
 import DT from 'datatables.net-dt';
 import JSZip from 'jszip';
 window.JSZip = JSZip;
+import Config from '../Config';
 
 import 'datatables.net-select-dt';
 import 'datatables.net-responsive-dt';
@@ -26,7 +27,7 @@ const Employees = () => {
     const [data, setData] = useState([]);
     const fetchData = async () => {
         try {
-            const response = await axios.get("http://localhost:8989/users", {
+            const response = await axios.get(`${Config.BaseUrl}/users`, {
                 headers: {
                     Authorization: `Bearer 023khjsdH7123j30-whjdf1-0sadkD2023jh43-0dfkvu123G712j0dfkj3`,
                 },
@@ -78,7 +79,7 @@ const Employees = () => {
                 try {
                     await axios({
                         method: 'delete',
-                        url: 'http://localhost:8989/delete-user',
+                        url: `${Config.BaseUrl}/delete-user`,
                         headers: {
                             'Content-Type': 'application/json',
                             Authorization: `Bearer ${token}`,

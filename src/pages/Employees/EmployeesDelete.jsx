@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
+import Config from '../Config';
 
 const EmployeesDelete = () => {
     const { id } = useParams();
@@ -16,7 +17,7 @@ const EmployeesDelete = () => {
 
             try {
                 const response = await axios.delete(
-                    'http://localhost:8989/update-user',
+                    `${Config.BaseUrl}/update-user`,
                     data,
                     {
                         headers: {

@@ -20,24 +20,45 @@ import 'datatables.net-buttons/js/buttons.html5.mjs';
 import 'datatables.net-buttons/js/buttons.print.mjs';
 import 'datatables.net-buttons/js/buttons.colVis.mjs';
 
-const PermissionTypes = () => {
+const TaskManagement = () => {
     DataTable.use(DT);
 
     const [data, setData] = useState([]);
+    const [statusFilter, setStatusFilter] = useState("all");
+
     const fetchData = async () => {
         try {
-            const response = await axios.get(`${Config.BaseUrl}/permission-types`, {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`${Config.BaseUrl}/tasks`, {
                 headers: {
-                    Authorization: `Bearer 023khjsdH7123j30-whjdf1-0sadkD2023jh43-0dfkvu123G712j0dfkj3`,
+                    Authorization: `Bearer ${token}`,
                 },
             });
 
-            const tableData = response.data.data.map((row) => [
-                row.id,
-                row.name.toUpperCase(),
-                (row.is_reduce_leave ? 'Ya' : 'Tidak').toUpperCase(),
+            const filteredData = response.data.data.filter((row) => 
+                statusFilter === "all" || row.status === statusFilter
+            );
+
+            const tableData = filteredData.map((row) => [
+                `<span class="${
+                    row.status === "completed" 
+                        ? "text-success" 
+                        : row.status === "in_review" 
+                        ? "text-warning" 
+                        : row.status === "in_progress" 
+                        ? "text-danger" 
+                        : row.status === "open" 
+                        ? "text-dark" 
+                        : ""
+                    }">
+                    ${row.status.replace(/_/g, " ").toUpperCase()}
+                </span>`,
+                row.title,
+                row.assign_name,
+                row.priority.toUpperCase(),
+                row.due_date,
                 `<div key=${row.id}>
-                    <a href="/roles/update/${row.id}" class="nav-link btn btn-warning btn-icon-split mb-3">
+                    <a href="/task-management/update/${row.id}" class="nav-link btn btn-warning btn-icon-split mb-3">
                         <span class="icon text-white-50">
                             <i class="fas fa-fw fa-pen"></i>
                         </span>
@@ -63,61 +84,15 @@ const PermissionTypes = () => {
 
     useEffect(() => {
         fetchData();
-    }, []);
-
-    useEffect(() => {
-        const handleDelete = async (id) => {
-            const confirmDelete = window.confirm("Apakah Anda yakin ingin menghapus data ini?");
-            const token = localStorage.getItem('token');
-            const data = {
-                id: parseInt(id)
-            }
-
-            if (confirmDelete) {
-                try {
-                    await axios({
-                        method: 'delete',
-                        url: `${Config.BaseUrl}/delete-permission-type`,
-                        headers: {
-                            'Content-Type': 'application/json',
-                            Authorization: `Bearer ${token}`,
-                        },
-                        data: data,
-                    });
-    
-                    alert("Data berhasil dihapus!");
-                    fetchData(); // Memperbarui data tabel setelah penghapusan
-                } catch (error) {
-                    console.error("Error deleting data:", error);
-                    alert("Gagal menghapus data.");
-                }
-            }
-        };
-        
-        // Tambahkan event listener untuk tombol delete
-        const handleButtonClick = (e) => {
-            const button = e.target.closest(".delete-button");
-            if (button) {
-                const id = button.getAttribute("data-id");
-                handleDelete(id);
-            }
-        };
-
-        document.addEventListener("click", handleButtonClick);
-
-        return () => {
-            // Bersihkan event listener saat komponen di-unmount
-            document.removeEventListener("click", handleButtonClick);
-        };
-    }, [data]);
+    }, [statusFilter]);
 
     return (
         <div className="container-fluid">
             <div className="d-sm-flex align-items-center justify-content-between mb-4">
-                <h1 className="h3 mb-0 text-gray-800">Jenis Izin</h1>
+                <h1 className="h3 mb-0 text-gray-800">Manajemen Pekerjaan</h1>
             </div>
 
-            <a href="/permission-types/create" className="nav-link btn btn-primary btn-icon-split mb-3">
+            <a href="/task-management/create" className="nav-link btn btn-primary btn-icon-split mb-3">
                 <span className="icon text-white-50">
                     <i className="fas fa-fw fa-plus"></i>
                 </span>
@@ -125,10 +100,28 @@ const PermissionTypes = () => {
             </a>
 
             <div className="row">
+                <div className="col-4 mb-3">
+                    <label htmlFor="statusFilter" className="form-label">Filter Status</label>
+                    <select
+                        id="statusFilter"
+                        className="form-control"
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                    >
+                        <option value="all">Semua</option>
+                        <option value="open">Open</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="in_review">In Review</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                </div>
+            </div>
+
+            <div className="row">
                 <div className="col-12">
                     <div className="card shadow mb-4">
                         <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                            <h6 className="m-0 font-weight-bold text-primary">Data Jenis Izin</h6>
+                            <h6 className="m-0 font-weight-bold text-primary">Data Pekerjaan</h6>
                         </div>
                         <div className="card-body">
                             <div className="table-responsive">
@@ -145,9 +138,11 @@ const PermissionTypes = () => {
                                 >
                                     <thead>
                                         <tr>
-                                            <th>ID Izin</th>
-                                            <th>Nama Izin</th>
-                                            <th>Kurangi Cuti</th>
+                                            <th>Status</th>
+                                            <th>Judul Tugas</th>
+                                            <th>Penanggung Jawab</th>
+                                            <th>Prioritas</th>
+                                            <th>Tenggat Waktu</th>
                                             <th className="nowrap">Aksi</th>
                                         </tr>
                                     </thead>
@@ -158,7 +153,7 @@ const PermissionTypes = () => {
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default PermissionTypes
+export default TaskManagement;

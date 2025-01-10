@@ -1,3 +1,5 @@
+import { NavLink } from "react-router-dom"
+
 function TimeDisplay() {
     const d = new Date();
     let hour = d.getHours();
@@ -72,10 +74,10 @@ function Topbar() {
                             Activity Log
                         </a>
                         <div className="dropdown-divider"></div> */}
-                        <a className="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                        <NavLink className="dropdown-item" to="/logout">
                             <i className="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                             Logout
-                        </a>
+                        </NavLink>
                     </div>
                 </li>
             </ul>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import Config from '../Config';
 
 function EmployeesCreate() {
     // Field Input
@@ -23,7 +24,7 @@ function EmployeesCreate() {
         const fetchRoles = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const response = await axios.get('http://localhost:8989/roles', {
+                const response = await axios.get(`${Config.BaseUrl}/roles`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                     },
@@ -55,7 +56,7 @@ function EmployeesCreate() {
 
         try {
             const response = await axios.post(
-                'http://localhost:8989/create-user',
+                `${Config.BaseUrl}/create-user`,
                 data,
                 {
                     headers: {
@@ -188,7 +189,8 @@ function EmployeesCreate() {
                                     </div>
                                 )}
 
-                                <button type="submit" className="btn btn-primary">Submit</button>
+                                <button type="submit" className="btn btn-primary mr-3">Submit</button>
+                                <a href='/employees' className="btn btn-warning">Cancel</a>
                             </form>
                         </div>
                     </div>

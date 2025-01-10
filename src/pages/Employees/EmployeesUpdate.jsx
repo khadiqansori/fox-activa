@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import Config from '../Config';
 
 const EmployeesUpdate = () => {
     const { id } = useParams();
@@ -20,7 +21,7 @@ const EmployeesUpdate = () => {
         const fetchRoles = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const response = await axios.get('http://localhost:8989/roles', {
+                const response = await axios.get(`${Config.BaseUrl}/roles`, {
                     headers: { 'Authorization': `Bearer ${token}` },
                 });
                 setRoles(response.data.data); // Set roles data
@@ -38,7 +39,7 @@ const EmployeesUpdate = () => {
         const fetchOldData = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const response = await axios.get(`http://localhost:8989/user/${id}`, {
+                const response = await axios.get(`${Config.BaseUrl}/user/${id}`, {
                     headers: { 'Authorization': `Bearer ${token}` },
                 });
 
@@ -76,7 +77,7 @@ const EmployeesUpdate = () => {
 
         try {
             const response = await axios.put(
-                'http://localhost:8989/update-user',
+                `${Config.BaseUrl}/update-user`,
                 data,
                 {
                     headers: {
@@ -197,7 +198,8 @@ const EmployeesUpdate = () => {
                                     </div>
                                 )}
 
-                                <button type="submit" className="btn btn-primary">Submit</button>
+                                <button type="submit" className="btn btn-primary mr-3">Submit</button>
+                                <a href='/employees' className="btn btn-warning">Cancel</a>
                             </form>
                         </div>
                     </div>
