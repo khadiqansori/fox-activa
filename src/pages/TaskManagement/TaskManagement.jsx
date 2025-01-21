@@ -34,54 +34,71 @@ const TaskManagement = () => {
                     Authorization: `Bearer ${token}`,
                 },
             });
-
+    
+            const today = new Date();
+    
             const filteredData = response.data.data.filter((row) => 
                 statusFilter === "all" || row.status === statusFilter
             );
-
-            const tableData = filteredData.map((row) => [
-                `<span class="${
-                    row.status === "completed" 
-                        ? "text-success" 
-                        : row.status === "in_review" 
-                        ? "text-warning" 
-                        : row.status === "in_progress" 
-                        ? "text-danger" 
-                        : row.status === "open" 
-                        ? "text-dark" 
-                        : ""
-                    }">
-                    ${row.status.replace(/_/g, " ").toUpperCase()}
-                </span>`,
-                row.title,
-                row.assign_name,
-                row.priority.toUpperCase(),
-                row.due_date,
-                `<div key=${row.id}>
-                    <a href="/task-management/update/${row.id}" class="nav-link btn btn-warning btn-icon-split mb-3">
-                        <span class="icon text-white-50">
-                            <i class="fas fa-fw fa-pen"></i>
-                        </span>
-                        <span class="text">Edit</span>
-                    </a>
-                    <button 
-                        class="btn btn-danger btn-icon-split delete-button"
-                        data-id="${row.id}"
-                    >
-                        <span class="icon text-white-50">
-                            <i class="fas fa-fw fa-trash"></i>
-                        </span>
-                        <span class="text">Hapus</span>
-                    </button>
-                </div>`,
-            ]);
-
+    
+            const tableData = filteredData.map((row) => {
+                const dueDate = new Date(row.due_date);
+                const completedAt = new Date(row.completed_at)
+                const isOverdue = ((dueDate < today) || (dueDate < completedAt));
+    
+                return [
+                    `<span class="${
+                        row.status === "completed" 
+                            ? "text-success" 
+                            : row.status === "in_review" 
+                            ? "text-warning" 
+                            : row.status === "in_progress" 
+                            ? "text-danger" 
+                            : row.status === "open" 
+                            ? "text-dark" 
+                            : ""
+                        }">
+                        ${row.status.replace(/_/g, " ").toUpperCase()}
+                    </span>`,
+                    row.title,
+                    row.assign_name,
+                    row.priority.toUpperCase(),
+                    `<span style="color: ${isOverdue ? 'red' : 'inherit'};">
+                        ${row.due_date} ${isOverdue ? '[Telat]' : ''}
+                    </span>`,
+                    row.completed_at,
+                    `<div key=${row.id}>
+                        <a href="/task-management/update/${row.id}" class="nav-link btn btn-warning btn-icon-split mb-3">
+                            <span class="icon text-white-50">
+                                <i class="fas fa-fw fa-pen"></i>
+                            </span>
+                            <span class="text">Edit</span>
+                        </a>
+                        <button 
+                            class="btn btn-danger btn-icon-split delete-button"
+                            data-id="${row.id}"
+                        >
+                            <span class="icon text-white-50">
+                                <i class="fas fa-fw fa-trash"></i>
+                            </span>
+                            <span class="text">Hapus</span>
+                        </button>
+                    </div>`,
+                ];
+            });
+    
             setData(tableData);
         } catch (error) {
-            console.error("Error fetching data:", error);
+            if (error.response && error.response.status === 401) {
+                window.location.href = '/logout'
+            }
+            if (error.response && error.response.status === 401) {
+                window.location.href = '/logout'
+            }
+console.error("Error fetching data:", error);
         }
     };
-
+    
     useEffect(() => {
         fetchData();
     }, [statusFilter]);
@@ -143,6 +160,7 @@ const TaskManagement = () => {
                                             <th>Penanggung Jawab</th>
                                             <th>Prioritas</th>
                                             <th>Tenggat Waktu</th>
+                                            <th>Tanggal Selesai</th>
                                             <th className="nowrap">Aksi</th>
                                         </tr>
                                     </thead>

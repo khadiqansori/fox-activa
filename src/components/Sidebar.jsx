@@ -56,12 +56,6 @@ const Sidebar = () => {
             <div className="sidebar-heading">Aplikasi</div>
 
             <li className="nav-item">
-                <NavLink className="nav-link" to="/infos">
-                    <i className="fas fa-fw fa-user"></i>
-                    <span>Info Saya</span></NavLink>
-            </li>
-
-            <li className="nav-item">
                 <NavLink className="nav-link" to="/attendances">
                     <i className="fas fa-fw fa-clipboard"></i>
                     <span>Absensi</span></NavLink>
@@ -71,6 +65,12 @@ const Sidebar = () => {
                 <NavLink className="nav-link" to="/attendance-logs">
                     <i className="fas fa-fw fa-business-time"></i>
                     <span>Log Kehadiran Saya</span></NavLink>
+            </li>
+
+            <li className="nav-item">
+                <NavLink className="nav-link" to="/permissions">
+                    <i className="fas fa-fw fa-clipboard-list"></i>
+                    <span>Izin / Cuti</span></NavLink>
             </li>
 
             <li className="nav-item">

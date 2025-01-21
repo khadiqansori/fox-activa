@@ -20,39 +20,58 @@ import 'datatables.net-buttons/js/buttons.html5.mjs';
 import 'datatables.net-buttons/js/buttons.print.mjs';
 import 'datatables.net-buttons/js/buttons.colVis.mjs';
 
+import { format } from "date-fns";
 
-const Employees = () => {
+const CleanDate = (isoDate) => {
+    let result
+
+    if (isoDate) {
+        result = format(new Date(isoDate), "yyyy-MM-dd");
+    } else {
+        result = "Butuh Konfirmasi"
+    }
+
+    return result
+};
+
+const Permissions = () => {
     DataTable.use(DT);
 
     const [data, setData] = useState([]);
     const fetchData = async () => {
+        const token = localStorage.getItem('token');
+
         try {
-            const response = await axios.get(`${Config.BaseUrl}/users`, {
+            const response = await axios.get(`${Config.BaseUrl}/permissions`, {
                 headers: {
-                    Authorization: `Bearer 023khjsdH7123j30-whjdf1-0sadkD2023jh43-0dfkvu123G712j0dfkj3`,
+                    Authorization: `Bearer ${token}`,
                 },
             });
 
             const tableData = response.data.data.map((row) => [
-                row.id,
-                row.name,
-                row.phone,
-                row.email,
+                row.permission_name.toUpperCase(),
+                row.user_name,
+                row.status.toUpperCase(),
+                CleanDate(row.start_date),
+                row.length_leave,
+                CleanDate(row.created_at),
+                CleanDate(row.confirm_at),
+                row.status == 'cancel' ? '' :
                 `<div key=${row.id}>
-                    <a href="/employees/update/${row.id}" class="nav-link btn btn-warning btn-icon-split mb-3">
+                    <a href="/permissions/update/${row.id}" class="nav-link btn btn-warning btn-icon-split mb-3">
                         <span class="icon text-white-50">
                             <i class="fas fa-fw fa-pen"></i>
                         </span>
                         <span class="text">Edit</span>
                     </a>
                     <button 
-                        class="btn btn-danger btn-icon-split delete-button"
+                        class="btn btn-secondary btn-icon-split cancel-button"
                         data-id="${row.id}"
                     >
                         <span class="icon text-white-50">
-                            <i class="fas fa-fw fa-trash"></i>
+                            <i class="fas fa-fw fa-ban"></i>
                         </span>
-                        <span class="text">Hapus</span>
+                        <span class="text">Cancel</span>
                     </button>
                 </div>`,
             ]);
@@ -71,58 +90,60 @@ const Employees = () => {
     }, []);
 
     useEffect(() => {
-        const handleDelete = async (id) => {
-            const confirmDelete = window.confirm("Apakah Anda yakin ingin menghapus data ini?");
-            const token = localStorage.getItem('token');
-            const data = {
-                id: parseInt(id)
-            }
-
-            if (confirmDelete) {
+        const handleCancel = async (id) => {
+            const confirmCancel = window.confirm("Apakah Anda yakin ingin membatalkan izin ini?");
+            const token = localStorage.getItem("token");
+            const payload = {
+                id: parseInt(id),
+                id_permission_type: 1, // Pastikan tipe izin sesuai kebutuhan
+                note: "Dibatalkan oleh pengguna", // Catatan default
+                status: "cancel", // Status diubah menjadi cancel
+                start_date: "2025-01-20", // Placeholder untuk tanggal mulai
+                end_date: "2025-01-20", // Placeholder untuk tanggal akhir
+            };
+    
+            if (confirmCancel) {
                 try {
-                    await axios({
-                        method: 'delete',
-                        url: `${Config.BaseUrl}/delete-user`,
+                    await axios.put(`${Config.BaseUrl}/update-permission`, payload, {
                         headers: {
-                            'Content-Type': 'application/json',
+                            "Content-Type": "application/json",
                             Authorization: `Bearer ${token}`,
                         },
-                        data: data,
                     });
     
-                    alert("Data berhasil dihapus!");
-                    fetchData(); // Memperbarui data tabel setelah penghapusan
+                    alert("Data berhasil dibatalkan!");
+                    fetchData(); // Memperbarui data tabel setelah pembatalan
                 } catch (error) {
-                    console.error("Error deleting data:", error);
-                    alert("Gagal menghapus data.");
+                    console.error("Error canceling data:", error);
+                    alert("Gagal membatalkan data.");
                 }
             }
         };
-        
-        // Tambahkan event listener untuk tombol delete
+    
+        // Tambahkan event listener untuk tombol cancel
         const handleButtonClick = (e) => {
-            const button = e.target.closest(".delete-button");
+            const button = e.target.closest(".cancel-button");
             if (button) {
                 const id = button.getAttribute("data-id");
-                handleDelete(id);
+                handleCancel(id);
             }
         };
-
+    
         document.addEventListener("click", handleButtonClick);
-
+    
         return () => {
             // Bersihkan event listener saat komponen di-unmount
             document.removeEventListener("click", handleButtonClick);
         };
-    }, [data]);
+    }, [data]);    
 
     return (
         <div className="container-fluid">
             <div className="d-sm-flex align-items-center justify-content-between mb-4">
-                <h1 className="h3 mb-0 text-gray-800">Karyawan</h1>
+                <h1 className="h3 mb-0 text-gray-800">Ajukan Izin / Cuti</h1>
             </div>
 
-            <a href="/employees/create" className="nav-link btn btn-primary btn-icon-split mb-3">
+            <a href="/permissions/create" className="nav-link btn btn-primary btn-icon-split mb-3">
                 <span className="icon text-white-50">
                     <i className="fas fa-fw fa-plus"></i>
                 </span>
@@ -133,7 +154,7 @@ const Employees = () => {
                 <div className="col-12">
                     <div className="card shadow mb-4">
                         <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                            <h6 className="m-0 font-weight-bold text-primary">Data Karyawan</h6>
+                            <h6 className="m-0 font-weight-bold text-primary">Data Ajuan Izin / Cuti</h6>
                         </div>
                         <div className="card-body">
                             <div className="table-responsive">
@@ -150,10 +171,13 @@ const Employees = () => {
                                 >
                                     <thead>
                                         <tr>
-                                            <th>NIK</th>
-                                            <th>Nama Lengkap</th>
-                                            <th>No. HP</th>
-                                            <th>Email</th>
+                                            <th>Mengajukan</th>
+                                            <th>Pengaju</th>
+                                            <th>Status</th>
+                                            <th>Tanggal Izin</th>
+                                            <th>Jumlah Hari</th>
+                                            <th>Tanggal Buat</th>
+                                            <th>Tanggal Konfirmasi</th>
                                             <th className="nowrap">Aksi</th>
                                         </tr>
                                     </thead>
@@ -164,7 +188,7 @@ const Employees = () => {
                 </div>
             </div>
         </div>
-    );
-};
+    )
+}
 
-export default Employees;
+export default Permissions

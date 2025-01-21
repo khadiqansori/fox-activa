@@ -58,6 +58,9 @@ const Roles = () => {
             console.log(tableData)
             setData(tableData);
         } catch (error) {
+            if (error.response && error.response.status === 401) {
+                window.location.href = '/logout'
+            }
             console.error("Error fetching data:", error);
         }
     };

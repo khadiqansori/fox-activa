@@ -41,6 +41,9 @@ function AttendanceLog() {
             });
             setData(response.data.data);
         } catch (error) {
+            if (error.response && error.response.status === 401) {
+                window.location.href = '/logout'
+            }
             console.error("Error fetching data:", error);
         }
     };
