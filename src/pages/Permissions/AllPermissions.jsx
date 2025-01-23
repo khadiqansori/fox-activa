@@ -34,10 +34,9 @@ const CleanDate = (isoDate) => {
     return result
 };
 
-const Permissions = () => {
+const AllPermissions = () => {
     DataTable.use(DT);
 
-    const userInfo = JSON.parse(localStorage.getItem('user_info'));
     const [data, setData] = useState([]);
     const fetchData = async () => {
         const token = localStorage.getItem('token');
@@ -47,9 +46,6 @@ const Permissions = () => {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
-                params: {
-                    "id_user.eq": userInfo.id,
-                }
             });
 
             const tableData = response.data.data.map((row) => [
@@ -60,24 +56,27 @@ const Permissions = () => {
                 row.length_leave,
                 CleanDate(row.created_at),
                 CleanDate(row.confirm_at),
-                row.status == 'cancel' ? '' :
+                row.status == 'request' ?
                 `<div key=${row.id}>
-                    <a href="/permissions/update/${row.id}" class="nav-link btn btn-warning btn-icon-split mb-3">
-                        <span class="icon text-white-50">
-                            <i class="fas fa-fw fa-pen"></i>
-                        </span>
-                        <span class="text">Edit</span>
-                    </a>
                     <button 
-                        class="btn btn-secondary btn-icon-split cancel-button"
-                        data-id="${row.id}"
+                        class="btn btn-success btn-icon-split confirm-button mb-3"
+                        data-id='${JSON.stringify(row)}'
+                    >
+                        <span class="icon text-white-50">
+                            <i class="fas fa-fw fa-check"></i>
+                        </span>
+                        <span class="text">Terima</span>
+                    </button>
+                    <button 
+                        class="btn btn-danger btn-icon-split decline-button"
+                        data-id='${JSON.stringify(row)}'
                     >
                         <span class="icon text-white-50">
                             <i class="fas fa-fw fa-ban"></i>
                         </span>
-                        <span class="text">Cancel</span>
+                        <span class="text">Tolak</span>
                     </button>
-                </div>`,
+                </div>` : '',
             ]);
 
             setData(tableData);
@@ -94,16 +93,48 @@ const Permissions = () => {
     }, []);
 
     useEffect(() => {
-        const handleCancel = async (id) => {
+        const handleCancel = async (row) => {
+            const data = JSON.parse(row)
             const confirmCancel = window.confirm("Apakah Anda yakin ingin membatalkan izin ini?");
             const token = localStorage.getItem("token");
             const payload = {
-                id: parseInt(id),
+                id: parseInt(data.id),
                 id_permission_type: 1, // Pastikan tipe izin sesuai kebutuhan
-                note: "Dibatalkan oleh pengguna", // Catatan default
-                status: "cancel", // Status diubah menjadi cancel
-                start_date: "2025-01-20", // Placeholder untuk tanggal mulai
-                end_date: "2025-01-20", // Placeholder untuk tanggal akhir
+                note: data.note, // Catatan default
+                status: "decline", // Status diubah menjadi cancel
+                start_date: data.start_date,
+                end_date: data.end_date,
+            };
+    
+            if (confirmCancel) {
+                try {
+                    await axios.put(`${Config.BaseUrl}/update-permission`, payload, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                    });
+    
+                    alert("Data berhasil dibatalkan!");
+                    fetchData(); // Memperbarui data tabel setelah pembatalan
+                } catch (error) {
+                    console.error("Error canceling data:", error);
+                    alert("Gagal membatalkan data.");
+                }
+            }
+        };
+
+        const handleConfirm = async (row) => {
+            const data = JSON.parse(row)
+            const confirmCancel = window.confirm("Apakah Anda yakin ingin konfirmasi izin ini?");
+            const token = localStorage.getItem("token");
+            const payload = {
+                id: parseInt(data.id),
+                id_permission_type: 1, // Pastikan tipe izin sesuai kebutuhan
+                note: data.note, // Catatan default
+                status: "confirm", // Status diubah menjadi cancel
+                start_date: data.start_date,
+                end_date: data.end_date,
             };
     
             if (confirmCancel) {
@@ -126,10 +157,16 @@ const Permissions = () => {
     
         // Tambahkan event listener untuk tombol cancel
         const handleButtonClick = (e) => {
-            const button = e.target.closest(".cancel-button");
-            if (button) {
-                const id = button.getAttribute("data-id");
+            const declineButton = e.target.closest(".decline-button");
+            if (declineButton) {
+                const id = declineButton.getAttribute("data-id");
                 handleCancel(id);
+            }
+
+            const confirmButton = e.target.closest(".confirm-button");
+            if (confirmButton) {
+                const id = confirmButton.getAttribute("data-id");
+                handleConfirm(id);
             }
         };
     
@@ -144,21 +181,14 @@ const Permissions = () => {
     return (
         <div className="container-fluid">
             <div className="d-sm-flex align-items-center justify-content-between mb-4">
-                <h1 className="h3 mb-0 text-gray-800">Ajukan Izin / Cuti</h1>
+                <h1 className="h3 mb-0 text-gray-800">Pengajuan Izin / Cuti</h1>
             </div>
-
-            <a href="/permissions/create" className="nav-link btn btn-primary btn-icon-split mb-3">
-                <span className="icon text-white-50">
-                    <i className="fas fa-fw fa-plus"></i>
-                </span>
-                <span className="text">Tambah Data</span>
-            </a>
 
             <div className="row">
                 <div className="col-12">
                     <div className="card shadow mb-4">
                         <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                            <h6 className="m-0 font-weight-bold text-primary">Data Ajuan Izin / Cuti</h6>
+                            <h6 className="m-0 font-weight-bold text-primary">Data Pengajuan Izin / Cuti</h6>
                         </div>
                         <div className="card-body">
                             <div className="table-responsive">
@@ -195,4 +225,4 @@ const Permissions = () => {
     )
 }
 
-export default Permissions
+export default AllPermissions

@@ -29,7 +29,7 @@ function TaskManagementEdit() {
 
             try {
                 // Fetch pengguna
-                const usersResponse = await axios.get(`${Config.BaseUrl}/users?id.eq=17336537531716`, {
+                const usersResponse = await axios.get(`${Config.BaseUrl}/users/hierarchy`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                     },
@@ -72,7 +72,7 @@ function TaskManagementEdit() {
         const token = localStorage.getItem('token'); // Ambil token dari localStorage
 
         const data = {
-            id: id, // ID tugas yang sedang diedit
+            id: parseInt(id), // ID tugas yang sedang diedit
             title: title,
             description: description,
             assign_to: Number(assignTo),
@@ -97,7 +97,7 @@ function TaskManagementEdit() {
             setSuccessMessage('Task updated successfully!');
             console.log(response.data);
             // Redirect ke halaman daftar tugas
-            window.location.href = '/tasks';
+            window.location.href = '/task-management';
         } catch (error) {
             console.error('Error updating task:', error);
             setErrorMessage(error.response?.data?.message || 'An error occurred');
@@ -154,7 +154,7 @@ function TaskManagementEdit() {
                                         }}
                                         required
                                     >
-                                        <option value="">-- Pilih Penerima --</option>
+                                        <option value="" disabled>-- Pilih Penerima --</option>
                                         {users.map(user => (
                                             <option key={user.id} value={user.id}>
                                                 {user.name}
@@ -172,8 +172,8 @@ function TaskManagementEdit() {
                                         onChange={(e) => setStatus(e.target.value)}
                                     >
                                         <option value="open">Open</option>
-                                        <option value="in-progress">In Progress</option>
-                                        <option value="in-review">In Review</option>
+                                        <option value="in_progress">In Progress</option>
+                                        <option value="in_review">In Review</option>
                                         <option value="completed">Completed</option>
                                     </select>
                                 </div>

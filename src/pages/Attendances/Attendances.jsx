@@ -15,11 +15,32 @@ const Attendances = () => {
     const [currentTime, setCurrentTime] = useState(new Date());
     const [latitude, setLatitude] = useState(null);
     const [longitude, setLongitude] = useState(null);
+    const [status, setStatus] = useState('Masuk');
     const btnClockIn = useRef(null);
     const btnClockOut = useRef(null);
+    const userInfo = JSON.parse(localStorage.getItem('user_info'))
+    const referenceLatitude = -6.166057;
+    const referenceLongitude = 106.810325;
+    const radius = 500; // 50 meters
+
+    // Haversine formula to calculate distance
+    const calculateDistance = (lat1, lon1, lat2, lon2) => {
+        const R = 6371e3; // Earth radius in meters
+        const toRadians = (degrees) => degrees * (Math.PI / 180);
+        const φ1 = toRadians(lat1);
+        const φ2 = toRadians(lat2);
+        const Δφ = toRadians(lat2 - lat1);
+        const Δλ = toRadians(lon2 - lon1);
+
+        const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                  Math.cos(φ1) * Math.cos(φ2) *
+                  Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c; // Distance in meters
+    };
 
     useEffect(() => {
-        // Dapatkan lokasi saat ini menggunakan Geolocation API
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
@@ -28,40 +49,26 @@ const Attendances = () => {
                 },
                 (error) => {
                     console.error("Error getting location", error);
+                    alert("Tidak dapat mengakses lokasi. Pastikan GPS Anda aktif.");
                 }
             );
+        } else {
+            alert("Geolocation tidak didukung oleh perangkat Anda.");
         }
-
-        // Buat interval untuk memperbarui waktu setiap detik
+    
         const timer = setInterval(() => {
-            setCurrentTime(today);
-
-            // if (hour > 18 || (hour === 18 && minute > 0)) {
-            //     if (btnClockOut.current) {
-            //         btnClockOut.current.disabled = false;
-            //     }
-            // } else {
-            //     if (btnClockOut.current) {
-            //         btnClockOut.current.disabled = true;
-            //     }
-            // }
+            setCurrentTime(new Date());
         }, 1000);
-
-        // Bersihkan interval saat komponen di-unmount
+    
         return () => clearInterval(timer);
-    }, [today]);
+    }, []);    
 
-    // Array nama hari dalam bahasa Indonesia
     const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-
-    // Fungsi untuk menambahkan angka 0 di depan jika kurang dari 10
     const formatTwoDigits = (number) => number.toString().padStart(2, "0");
-
-    // Fungsi untuk menentukan apakah hari adalah Sabtu atau Minggu
     const isWeekend = (day) => {
-        const date = new Date(year, month - 1, day); // month - 1 karena bulan di JS berbasis 0
+        const date = new Date(year, month - 1, day);
         const dayOfWeek = date.getDay();
-        return dayOfWeek === 6 || dayOfWeek === 0; // 6 = Sabtu, 0 = Minggu
+        return dayOfWeek === 6 || dayOfWeek === 0
     };
 
     const [data, setData] = useState([]);
@@ -83,6 +90,37 @@ const Attendances = () => {
             }
             console.error("Error fetching data:", error);
         }
+
+        try {
+            const response = await axios.get(`${Config.BaseUrl}/permissions` , {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                params: {
+                    "id_user.eq": userInfo.id,
+                    "status.eq": "confirm"
+                }
+            });
+
+            response.data.data.forEach(data => {
+                const permissionStartDate = new Date(data.start_date);
+                const permissionEndDate = new Date(data.end_date);
+                const currentDate = new Date(dateFormat);
+
+                // Check if the current date is within the permission range
+                if (currentDate >= permissionStartDate && currentDate <= permissionEndDate) {
+                    // Disable the buttons and set the status
+                    btnClockIn.current.disabled = true;
+                    btnClockOut.current.disabled = true;
+                    setStatus(data.permission_name); // Set the status to permission name
+                }
+            });
+        } catch (error) {
+            if (error.response && error.response.status === 401) {
+                window.location.href = '/logout'
+            }
+            console.error("Error fetching data:", error);
+        }
     };
 
     useEffect(() => {
@@ -90,17 +128,26 @@ const Attendances = () => {
     }, [year, month, day]);
 
     const handleClockIn = async () => {
-        const token = localStorage.getItem('token');
+        if (!latitude || !longitude) {
+            alert("Lokasi belum ditemukan, coba lagi.");
+            return;
+        }
 
-        // Format waktu dalam format "yyyy-mm-dd HH:MM:ss"
-        const time = `${year}-${formatTwoDigits(month)}-${formatTwoDigits(day)} ${formatTwoDigits(hour)}:${formatTwoDigits(minute)}:${formatTwoDigits(second)}`;
+        const distance = calculateDistance(latitude, longitude, referenceLatitude, referenceLongitude);
+        if (distance > radius) {
+            alert(`Anda berada di luar radius ${radius} meter. Tidak dapat melakukan Clock In.`);
+            return;
+        }
+
+        const token = localStorage.getItem('token');
+        const time = `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")} ${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}:${second.toString().padStart(2, "0")}`;
 
         try {
             await axios.post(`${Config.BaseUrl}/create-attendance`, {
                 type: 'clock_in',
-                time: time,
-                latitude: latitude,
-                longitude: longitude,
+                time,
+                latitude,
+                longitude,
             }, {
                 headers: {
                     'Content-Type': 'application/json',
@@ -115,26 +162,26 @@ const Attendances = () => {
     };
 
     const handleClockOut = async () => {
-        const token = localStorage.getItem('token');
-
-        if (hour < 18) {
-            const confirmClockOut = window.confirm(
-                "Anda mencoba melakukan Clock Out sebelum jam 18:00. Apakah Anda yakin ingin melanjutkan?"
-            );
-            if (!confirmClockOut) {
-                return; // Batalkan proses jika pengguna memilih "Batal"
-            }
+        if (!latitude || !longitude) {
+            alert("Lokasi belum ditemukan, coba lagi.");
+            return;
         }
 
-        // Format waktu dalam format "yyyy-mm-dd HH:MM:ss"
-        const time = `${year}-${formatTwoDigits(month)}-${formatTwoDigits(day)} ${formatTwoDigits(hour)}:${formatTwoDigits(minute)}:${formatTwoDigits(second)}`;
+        const distance = calculateDistance(latitude, longitude, referenceLatitude, referenceLongitude);
+        if (distance > radius) {
+            alert(`Anda berada di luar radius ${radius} meter. Tidak dapat melakukan Clock Out.`);
+            return;
+        }
+
+        const token = localStorage.getItem('token');
+        const time = `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")} ${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}:${second.toString().padStart(2, "0")}`;
 
         try {
             await axios.post(`${Config.BaseUrl}/create-attendance`, {
                 type: 'clock_out',
-                time: time,
-                latitude: latitude,
-                longitude: longitude,
+                time,
+                latitude,
+                longitude,
             }, {
                 headers: {
                     'Content-Type': 'application/json',
@@ -144,11 +191,11 @@ const Attendances = () => {
 
             window.location.href = '/attendances';
         } catch (error) {
-            console.error("Error clocking in:", error);
+            console.error("Error clocking out:", error);
         }
     };
 
-    // Generate data untuk setiap hari
+
     const days = Array.from({ length: 1 }, () => {
         const date = day;
         const formattedDate = `${formatTwoDigits(date)}-${formatTwoDigits(month)}-${year}`;
@@ -213,7 +260,7 @@ const Attendances = () => {
                                 <div className="card shadow mb-4">
                                     <div className="card-body text-center">
                                         <div className="col-12 mb-3">
-                                            <p>Jadwal : {day} {currentMonth} {year}</p>
+                                            <p>Jadwal : {status}</p>
                                             <h5 className="m-0 font-weight-bold text-dark">09:00 - 18:00</h5>
                                         </div>
                                         <div className="row">

@@ -23,6 +23,7 @@ import TaskManagementEdit from './pages/TaskManagement/TaskManagementUpdate.jsx'
 import Permissions from './pages/Permissions/Permissions.jsx';
 import PermissionCreate from './pages/Permissions/PermissionCreate.jsx';
 import PermissionUpdate from './pages/Permissions/PermissionUpdate.jsx';
+import AllPermissions from './pages/Permissions/AllPermissions.jsx';
 
 const Logout = () => {
   localStorage.clear();
@@ -90,6 +91,7 @@ function App() {
                     <Route path="/roles/update/:id" element={<RolesUpdate />} />
                     <Route path="/permission-types" element={<PermissionTypes />} />
                     <Route path="/permission-types/create" element={<PermissionTypesCreate />} />
+                    <Route path="/list-permissions" element={<AllPermissions />} />
                     <Route path="/permissions" element={<Permissions />} />
                     <Route path="/permissions/create" element={<PermissionCreate />} />
                     <Route path="/permissions/update/:id" element={<PermissionUpdate />} />

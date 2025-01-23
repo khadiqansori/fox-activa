@@ -1,6 +1,8 @@
 import { NavLink } from "react-router-dom"
 
 function TimeDisplay() {
+    const userInfo = JSON.parse(localStorage.getItem('user_info'));
+
     const d = new Date();
     let hour = d.getHours();
     let result = 'Pagi';
@@ -16,7 +18,7 @@ function TimeDisplay() {
     }
 
     return (
-        <h5 className="h5 mb-1 font-weight-bold text-gray-800">Selamat {result}, Khadiq Ansori</h5>
+        <h5 className="h5 mb-1 font-weight-bold text-gray-800">Selamat {result}, {userInfo.name} - {userInfo.role.toUpperCase()}</h5>
     );
 }
 
@@ -39,6 +41,8 @@ function DateDisplay() {
 }
 
 function Topbar() {
+    const userInfo = JSON.parse(localStorage.getItem('user_info'));
+
     return (
         <nav className="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
             <button id="sidebarToggleTop" className="btn btn-link d-md-none rounded-circle mr-3">
@@ -56,7 +60,7 @@ function Topbar() {
                 <li className="nav-item dropdown no-arrow">
                     <a className="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                         data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <span className="mr-2 d-none d-lg-inline text-gray-600 small">Khadiq Ansori</span>
+                        <span className="mr-2 d-none d-lg-inline text-gray-600 small">{userInfo.name}</span>
                         <img className="img-profile rounded-circle" src="/src/assets/img/undraw_profile.svg" />
                     </a>
                     <div className="dropdown-menu dropdown-menu-right shadow animated--grow-in"

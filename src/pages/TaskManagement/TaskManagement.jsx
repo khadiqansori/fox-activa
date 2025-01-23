@@ -37,14 +37,31 @@ const TaskManagement = () => {
     
             const today = new Date();
     
-            const filteredData = response.data.data.filter((row) => 
+            const filteredData = response.data.data.filter((row) =>
                 statusFilter === "all" || row.status === statusFilter
             );
     
             const tableData = filteredData.map((row) => {
                 const dueDate = new Date(row.due_date);
-                const completedAt = new Date(row.completed_at)
-                const isOverdue = ((dueDate < today) || (dueDate < completedAt));
+                const completedAt = row.completed_at ? new Date(row.completed_at) : null;
+    
+                let daysLeftText;
+    
+                if (row.status === "completed" && completedAt) {
+                    const diffTime = completedAt - dueDate;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+                    daysLeftText = diffDays > 0 
+                        ? `<span style="color: red;">Telat ${diffDays} hari</span>` 
+                        : `<span style="color: green;">Tepat waktu (${Math.abs(diffDays)} hari lebih awal)</span>`;
+                } else {
+                    const diffTime = dueDate - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+                    daysLeftText = dueDate < today
+                        ? `<span style="color: red;">Telat ${Math.abs(diffDays)} hari</span>`
+                        : `<span>${diffDays} hari</span>`;
+                }
     
                 return [
                     `<span class="${
@@ -57,15 +74,16 @@ const TaskManagement = () => {
                             : row.status === "open" 
                             ? "text-dark" 
                             : ""
-                        }">
+                    }">
                         ${row.status.replace(/_/g, " ").toUpperCase()}
                     </span>`,
                     row.title,
                     row.assign_name,
                     row.priority.toUpperCase(),
-                    `<span style="color: ${isOverdue ? 'red' : 'inherit'};">
-                        ${row.due_date} ${isOverdue ? '[Telat]' : ''}
+                    `<span style="color: ${dueDate < today ? 'red' : 'inherit'};">
+                        ${row.due_date} ${dueDate < today ? '[Telat]' : ''}
                     </span>`,
+                    daysLeftText, // Kolom baru untuk sisa hari atau status keterlambatan
                     row.completed_at,
                     `<div key=${row.id}>
                         <a href="/task-management/update/${row.id}" class="nav-link btn btn-warning btn-icon-split mb-3">
@@ -90,12 +108,9 @@ const TaskManagement = () => {
             setData(tableData);
         } catch (error) {
             if (error.response && error.response.status === 401) {
-                window.location.href = '/logout'
+                window.location.href = '/logout';
             }
-            if (error.response && error.response.status === 401) {
-                window.location.href = '/logout'
-            }
-console.error("Error fetching data:", error);
+            console.error("Error fetching data:", error);
         }
     };
     
@@ -160,6 +175,7 @@ console.error("Error fetching data:", error);
                                             <th>Penanggung Jawab</th>
                                             <th>Prioritas</th>
                                             <th>Tenggat Waktu</th>
+                                            <th>Sisa Hari</th>
                                             <th>Tanggal Selesai</th>
                                             <th className="nowrap">Aksi</th>
                                         </tr>

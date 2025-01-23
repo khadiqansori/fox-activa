@@ -23,6 +23,18 @@ const Master = () => {
                     <span>Jenis Izin / Cuti</span></NavLink>
             </li>
 
+            <li className="nav-item">
+                <NavLink className="nav-link" to="/list-permissions">
+                    <i className="fas fa-fw fa-clipboard-list"></i>
+                    <span>Permintaan Izin / Cuti</span></NavLink>
+            </li>
+
+            <li className="nav-item">
+                <NavLink className="nav-link" to="/performances">
+                    <i className="fas fa-fw fa-clipboard-list"></i>
+                    <span>Tinjauan Kinerja Karyawan</span></NavLink>
+            </li>
+
             <hr className="sidebar-divider" />
         </>
     )
@@ -70,7 +82,7 @@ const Sidebar = () => {
             <li className="nav-item">
                 <NavLink className="nav-link" to="/permissions">
                     <i className="fas fa-fw fa-clipboard-list"></i>
-                    <span>Izin / Cuti</span></NavLink>
+                    <span>Ajukan Izin / Cuti</span></NavLink>
             </li>
 
             <li className="nav-item">
