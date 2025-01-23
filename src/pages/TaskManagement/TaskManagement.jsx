@@ -25,6 +25,7 @@ const TaskManagement = () => {
 
     const [data, setData] = useState([]);
     const [statusFilter, setStatusFilter] = useState("all");
+    const userInfo = JSON.parse(localStorage.getItem('user_info'));
 
     const fetchData = async () => {
         try {
@@ -53,7 +54,7 @@ const TaskManagement = () => {
     
                     daysLeftText = diffDays > 0 
                         ? `<span style="color: red;">Telat ${diffDays} hari</span>` 
-                        : `<span style="color: green;">Tepat waktu (${Math.abs(diffDays)} hari lebih awal)</span>`;
+                        : `<span style="color: green;">Tepat waktu${Math.abs(diffDays) == 0 ? "" : ` (${Math.abs(diffDays)} hari lebih awal)`}</span>`;
                 } else {
                     const diffTime = dueDate - today;
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -80,13 +81,14 @@ const TaskManagement = () => {
                     row.title,
                     row.assign_name,
                     row.priority.toUpperCase(),
-                    `<span style="color: ${dueDate < today ? 'red' : 'inherit'};">
-                        ${row.due_date} ${dueDate < today ? '[Telat]' : ''}
+                    `<span style="color: ${row.status != "completed" && dueDate < today ? 'red' : 'inherit'};">
+                        ${row.due_date} ${row.status != "completed" && dueDate < today ? '[Telat]' : ''}
                     </span>`,
-                    daysLeftText, // Kolom baru untuk sisa hari atau status keterlambatan
+                    daysLeftText, 
                     row.completed_at,
+                    row.status == "completed" ? '' : 
                     `<div key=${row.id}>
-                        <a href="/task-management/update/${row.id}" class="nav-link btn btn-warning btn-icon-split mb-3">
+                        <a href="/task-management/update/${row.id}" class="nav-link btn btn-warning btn-icon-split mr-2">
                             <span class="icon text-white-50">
                                 <i class="fas fa-fw fa-pen"></i>
                             </span>
@@ -124,12 +126,14 @@ const TaskManagement = () => {
                 <h1 className="h3 mb-0 text-gray-800">Manajemen Pekerjaan</h1>
             </div>
 
-            <a href="/task-management/create" className="nav-link btn btn-primary btn-icon-split mb-3">
-                <span className="icon text-white-50">
-                    <i className="fas fa-fw fa-plus"></i>
-                </span>
-                <span className="text">Tambah Data</span>
-            </a>
+            {!userInfo.role.includes('spv') ? '' :
+                <a href="/task-management/create" className="nav-link btn btn-primary btn-icon-split mb-3">
+                    <span className="icon text-white-50">
+                        <i className="fas fa-fw fa-plus"></i>
+                    </span>
+                    <span className="text">Tambah Data</span>
+                </a>
+            }
 
             <div className="row">
                 <div className="col-4 mb-3">
@@ -159,13 +163,45 @@ const TaskManagement = () => {
                             <div className="table-responsive">
                                 <DataTable
                                     data={data}
-                                    className="table table-bordered display"
+                                    className="table table-bordered display nowrap"
                                     id="dataTable"
                                     width="100%"
                                     cellSpacing="0"
                                     options={{
                                         dom: 'Bfrtip',
-                                        buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
+                                        ordering: false,
+                                        buttons: [
+                                            {
+                                                extend: 'copy',
+                                                exportOptions: {
+                                                    columns: ':not(:last-child)', 
+                                                },
+                                            },
+                                            {
+                                                extend: 'csv',
+                                                exportOptions: {
+                                                    columns: ':not(:last-child)',
+                                                },
+                                            },
+                                            {
+                                                extend: 'excel',
+                                                exportOptions: {
+                                                    columns: ':not(:last-child)',
+                                                },
+                                            },
+                                            {
+                                                extend: 'pdf',
+                                                exportOptions: {
+                                                    columns: ':not(:last-child)',
+                                                },
+                                            },
+                                            {
+                                                extend: 'print',
+                                                exportOptions: {
+                                                    columns: ':not(:last-child)',
+                                                },
+                                            },
+                                        ],
                                     }}
                                 >
                                     <thead>

@@ -145,7 +145,39 @@ const Employees = () => {
                                     cellSpacing="0"
                                     options={{
                                         dom: 'Bfrtip',
-                                        buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
+                                        ordering: false,
+                                        buttons: [
+                                            {
+                                                extend: 'copy',
+                                                exportOptions: {
+                                                    columns: ':not(:last-child)', // Tidak menyertakan kolom terakhir (Aksi)
+                                                },
+                                            },
+                                            {
+                                                extend: 'csv',
+                                                exportOptions: {
+                                                    columns: ':not(:last-child)',
+                                                },
+                                            },
+                                            {
+                                                extend: 'excel',
+                                                exportOptions: {
+                                                    columns: ':not(:last-child)',
+                                                },
+                                            },
+                                            {
+                                                extend: 'pdf',
+                                                exportOptions: {
+                                                    columns: ':not(:last-child)',
+                                                },
+                                            },
+                                            {
+                                                extend: 'print',
+                                                exportOptions: {
+                                                    columns: ':not(:last-child)',
+                                                },
+                                            },
+                                        ],
                                     }}
                                 >
                                     <thead>

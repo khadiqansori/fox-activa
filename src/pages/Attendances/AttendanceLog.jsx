@@ -1,8 +1,28 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import DataTable from 'datatables.net-react';
+import DT from 'datatables.net-dt';
+import JSZip from 'jszip';
+window.JSZip = JSZip;
 import Config from '../Config';
 
+import 'datatables.net-select-dt';
+import 'datatables.net-responsive-dt';
+import 'datatables.net-bs4/css/dataTables.bootstrap4.min.css';
+import 'datatables.net-buttons-bs4/css/buttons.bootstrap4.min.css';
+import 'datatables.net';
+import 'datatables.net-bs4';
+import 'datatables.net-buttons';
+import 'datatables.net-buttons-bs4';
+import 'jszip';
+import 'pdfmake';
+import 'datatables.net-buttons/js/buttons.html5.mjs';
+import 'datatables.net-buttons/js/buttons.print.mjs';
+import 'datatables.net-buttons/js/buttons.colVis.mjs';
+
 function AttendanceLog() {
+    DataTable.use(DT);
+
     const today = new Date();
     const currentYear = today.getFullYear();
     const currentMonth = today.getMonth() + 1;
@@ -11,6 +31,7 @@ function AttendanceLog() {
     const [selectedMonth, setSelectedMonth] = useState(currentMonth);
     const [attendanceData, setAttendanceData] = useState([]);
     const [permissionData, setPermissionData] = useState([]);
+    const [data, setData] = useState([]);
 
     const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
     const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
@@ -61,52 +82,59 @@ function AttendanceLog() {
         fetchData();
     }, [selectedYear, selectedMonth]);
 
-    const days = Array.from({ length: daysInMonth }, (_, index) => {
-        const date = index + 1;
-        const formattedDate = `${formatTwoDigits(date)}-${formatTwoDigits(selectedMonth)}-${selectedYear}`;
-        const dayName = dayNames[new Date(selectedYear, selectedMonth - 1, date).getDay()];
-        const dateFormat = `${selectedYear}-${formatTwoDigits(selectedMonth)}-${formatTwoDigits(date)}`;
+    useEffect(() => {
+        const tableData = Array.from({ length: daysInMonth }, (_, index) => {
+            const date = index + 1;
+            const formattedDate = `${formatTwoDigits(date)}-${formatTwoDigits(selectedMonth)}-${selectedYear}`;
+            const dayName = dayNames[new Date(selectedYear, selectedMonth - 1, date).getDay()];
+            const dateFormat = `${selectedYear}-${formatTwoDigits(selectedMonth)}-${formatTwoDigits(date)}`;
 
-        let clockIn = "-";
-        let clockOut = "-";
-        let isLate = false;
-        let permissionStatus = null;
+            let clockIn = "-";
+            let clockOut = "-";
+            let isLate = false;
+            let permissionStatus = null;
 
-        // Check attendance data
-        attendanceData.forEach((item) => {
-            if (item.date === dateFormat) {
-                if (item.type === "clock_in") {
-                    clockIn = item.time;
-                    if (item.minute_late > 0) {
-                        isLate = true;
+            // Check attendance data
+            attendanceData.forEach((item) => {
+                if (item.date === dateFormat) {
+                    if (item.type === "clock_in") {
+                        clockIn = item.time;
+                        if (item.minute_late > 0) {
+                            isLate = true;
+                        }
+                    } else if (item.type === "clock_out") {
+                        clockOut = item.time;
                     }
-                } else if (item.type === "clock_out") {
-                    clockOut = item.time;
                 }
-            }
+            });
+
+            // Check permission data
+            permissionData.forEach((item) => {
+                if (item.start_date <= `${dateFormat}T23:59:59Z` && item.end_date >= `${dateFormat}T00:00:00Z`) {
+                    permissionStatus = item.permission_name;
+                }
+            });
+
+            const attendanceStatus = isWeekend(date) ? "Libur" : clockIn !== "-" ? "Hadir" : "Tidak Hadir";
+
+
+            return [
+                `<span class="${isWeekend(date) ? "text-danger" : ""}">
+                    <b>${dayName}</b>, ${formattedDate}
+                </span>`,
+                `<span class="${isLate ? "text-danger" : ""}">
+                    ${clockIn}
+                </span>`,
+                clockOut,
+                `<span class="${['Tidak Hadir', 'Libur'].includes(attendanceStatus) ? "text-danger" : ""}">
+                    ${attendanceStatus}
+                </span>`,
+                permissionStatus || "-",
+            ];
         });
 
-        // Check permission data
-        permissionData.forEach((item) => {
-            if (item.start_date <= `${dateFormat}T23:59:59Z` && item.end_date >= `${dateFormat}T00:00:00Z`) {
-                permissionStatus = item.permission_name;
-            }
-        });
-
-        const attendanceStatus = clockIn !== "-" ? "Hadir" : "Tidak Hadir";
-
-        return {
-            date,
-            formattedDate,
-            dayName,
-            isWeekend: isWeekend(date),
-            clockIn,
-            clockOut,
-            isLate,
-            permissionStatus,
-            attendanceStatus,
-        };
-    });
+        setData(tableData);
+    }, [attendanceData, permissionData, daysInMonth, selectedYear, selectedMonth]);
 
     return (
         <div className="container-fluid">
@@ -154,7 +182,36 @@ function AttendanceLog() {
                         </div>
                         <div className="card-body">
                             <div className="table-responsive">
-                                <table className="table table-hover">
+                                <DataTable
+                                    className="table table-bordered display nowrap"
+                                    id="dataTable"
+                                    width="100%"
+                                    cellSpacing="0"
+                                    data={data}
+                                    options={{
+                                        dom: 'Bfrtip',
+                                        paging: false,
+                                        scrollX: true,
+                                        ordering: false,
+                                        buttons: [
+                                            {
+                                                extend: 'copy',
+                                            },
+                                            {
+                                                extend: 'csv',
+                                            },
+                                            {
+                                                extend: 'excel',
+                                            },
+                                            {
+                                                extend: 'pdf',
+                                            },
+                                            {
+                                                extend: 'print',
+                                            },
+                                        ],
+                                    }}
+                                >
                                     <thead>
                                         <tr>
                                             <th>Tanggal</th>
@@ -164,22 +221,7 @@ function AttendanceLog() {
                                             <th>Izin</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        {days.map(({ date, formattedDate, dayName, isWeekend, clockIn, clockOut, isLate, attendanceStatus, permissionStatus }) => (
-                                            <tr key={date}>
-                                                <td style={{ color: isWeekend ? "red" : "black" }}>
-                                                    <b>{dayName}</b>, {formattedDate}
-                                                </td>
-                                                <td style={{color: isLate ? "red" : "black"}}>{clockIn}</td>
-                                                <td>{clockOut}</td>
-                                                <td style={{ color: attendanceStatus === "Tidak Hadir" ? "red" : "black" }}>
-                                                    {attendanceStatus}
-                                                </td>
-                                                <td>{permissionStatus || "-"}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                </DataTable>
                             </div>
                         </div>
                     </div>

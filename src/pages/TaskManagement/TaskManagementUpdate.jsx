@@ -22,6 +22,8 @@ function TaskManagementEdit() {
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
 
+    const userInfo = JSON.parse(localStorage.getItem('user_info'));
+
     // Fetch data pengguna dan tugas saat komponen di-mount
     useEffect(() => {
         const fetchTaskAndUsers = async () => {
@@ -174,7 +176,7 @@ function TaskManagementEdit() {
                                         <option value="open">Open</option>
                                         <option value="in_progress">In Progress</option>
                                         <option value="in_review">In Review</option>
-                                        <option value="completed">Completed</option>
+                                        <option value="completed" disabled={!userInfo.role.includes('spv')}>Completed</option>
                                     </select>
                                 </div>
 

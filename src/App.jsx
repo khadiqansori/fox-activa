@@ -15,7 +15,7 @@ import PermissionTypesCreate from './pages/PermissionTypes/PermissionTypesCreate
 import Info from './pages/Info.jsx';
 import Attendances from './pages/Attendances/Attendances.jsx';
 import AttendanceLog from './pages/Attendances/AttendanceLog.jsx';
-import Performance from './pages/Performance.jsx';
+import Performance from './pages/Performances/Performance.jsx';
 import TaskManagement from './pages/TaskManagement/TaskManagement.jsx';
 import RolesUpdate from './pages/Roles/RolesUpdate.jsx';
 import TaskManagementCreate from './pages/TaskManagement/TaskManagementCreate.jsx';
@@ -24,6 +24,7 @@ import Permissions from './pages/Permissions/Permissions.jsx';
 import PermissionCreate from './pages/Permissions/PermissionCreate.jsx';
 import PermissionUpdate from './pages/Permissions/PermissionUpdate.jsx';
 import AllPermissions from './pages/Permissions/AllPermissions.jsx';
+import AllPerformance from './pages/Performances/AllPerformance.jsx';
 
 const Logout = () => {
   localStorage.clear();
@@ -99,6 +100,7 @@ function App() {
                     <Route path="/attendances" element={<Attendances />} />
                     <Route path="/attendance-logs" element={<AttendanceLog />} />
                     <Route path="/performances" element={<Performance />} />
+                    <Route path="/all-performances" element={<AllPerformance />} />
                     <Route path="/task-management" element={<TaskManagement />} />
                     <Route path="/task-management/create" element={<TaskManagementCreate />} />
                     <Route path="/task-management/update/:id" element={<TaskManagementEdit />} />

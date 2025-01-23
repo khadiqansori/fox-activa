@@ -30,7 +30,13 @@ const Master = () => {
             </li>
 
             <li className="nav-item">
-                <NavLink className="nav-link" to="/performances">
+                <NavLink className="nav-link" to="/internal-performances">
+                    <i className="fas fa-fw fa-clipboard-list"></i>
+                    <span>Kinerja Internal Karyawan</span></NavLink>
+            </li>
+
+            <li className="nav-item">
+                <NavLink className="nav-link" to="/all-performances">
                     <i className="fas fa-fw fa-clipboard-list"></i>
                     <span>Tinjauan Kinerja Karyawan</span></NavLink>
             </li>

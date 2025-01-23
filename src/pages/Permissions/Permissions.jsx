@@ -162,30 +162,62 @@ const Permissions = () => {
                         </div>
                         <div className="card-body">
                             <div className="table-responsive">
-                                <DataTable
-                                    data={data}
-                                    className="table table-bordered display"
-                                    id="dataTable"
-                                    width="100%"
-                                    cellSpacing="0"
-                                    options={{
-                                        dom: 'Bfrtip',
-                                        buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
-                                    }}
-                                >
-                                    <thead>
-                                        <tr>
-                                            <th>Mengajukan</th>
-                                            <th>Pengaju</th>
-                                            <th>Status</th>
-                                            <th>Tanggal Izin</th>
-                                            <th>Jumlah Hari</th>
-                                            <th>Tanggal Buat</th>
-                                            <th>Tanggal Konfirmasi</th>
-                                            <th className="nowrap">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                </DataTable>
+                            <DataTable
+                                data={data}
+                                className="table table-bordered display"
+                                id="dataTable"
+                                width="100%"
+                                cellSpacing="0"
+                                options={{
+                                    dom: 'Bfrtip',
+                                    ordering: false,
+                                    buttons: [
+                                        {
+                                            extend: 'copy',
+                                            exportOptions: {
+                                                columns: ':not(:last-child)', // Tidak menyertakan kolom terakhir (Aksi)
+                                            },
+                                        },
+                                        {
+                                            extend: 'csv',
+                                            exportOptions: {
+                                                columns: ':not(:last-child)',
+                                            },
+                                        },
+                                        {
+                                            extend: 'excel',
+                                            exportOptions: {
+                                                columns: ':not(:last-child)',
+                                            },
+                                        },
+                                        {
+                                            extend: 'pdf',
+                                            exportOptions: {
+                                                columns: ':not(:last-child)',
+                                            },
+                                        },
+                                        {
+                                            extend: 'print',
+                                            exportOptions: {
+                                                columns: ':not(:last-child)',
+                                            },
+                                        },
+                                    ],
+                                }}
+                            >
+                                <thead>
+                                    <tr>
+                                        <th>Mengajukan</th>
+                                        <th>Pengaju</th>
+                                        <th>Status</th>
+                                        <th>Tanggal Izin</th>
+                                        <th>Jumlah Hari</th>
+                                        <th>Tanggal Buat</th>
+                                        <th>Tanggal Konfirmasi</th>
+                                        <th className="nowrap">Aksi</th>
+                                    </tr>
+                                </thead>
+                            </DataTable>
                             </div>
                         </div>
                     </div>
