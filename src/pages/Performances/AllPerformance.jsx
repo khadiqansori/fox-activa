@@ -1,30 +1,37 @@
-import axios from 'axios';
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
+import axios from "axios";
+import DataTable from 'datatables.net-react';
+import DT from 'datatables.net-dt';
+import JSZip from 'jszip';
+window.JSZip = JSZip;
+import Config from '../Config';
+
+import 'datatables.net-select-dt';
+import 'datatables.net-responsive-dt';
+import 'datatables.net-bs4/css/dataTables.bootstrap4.min.css';
+import 'datatables.net-buttons-bs4/css/buttons.bootstrap4.min.css';
+import 'datatables.net';
+import 'datatables.net-bs4';
+import 'datatables.net-buttons';
+import 'datatables.net-buttons-bs4';
+import 'jszip';
+import 'pdfmake';
+import 'datatables.net-buttons/js/buttons.html5.mjs';
+import 'datatables.net-buttons/js/buttons.print.mjs';
+import 'datatables.net-buttons/js/buttons.colVis.mjs';
 
 const AllPerformances = () => {
+    DataTable.use(DT);
+
     const today = new Date();
     const currentYear = today.getFullYear();
     const currentMonth = today.getMonth() + 1;
 
     const [selectedYear, setSelectedYear] = useState(currentYear);
     const [selectedMonth, setSelectedMonth] = useState(currentMonth);
-    const [workdaysCount, setWorkdaysCount] = useState(0);
-    const [attendanceCount, setAttendanceCount] = useState(0);
-    const [lateMinutes, setLateMinutes] = useState(0);
-    const [earlyLeaveMinutes, setEarlyLeaveMinutes] = useState(0);
-    const [absentWithoutNote, setAbsentWithoutNote] = useState(0);
-    const [leaveDaysCount, setLeaveDaysCount] = useState(0);
-    const [performanceAttPercentage, setPerformanceAttPercentage] = useState(0);
-
-    const [taskCount, setTaskCount] = useState(0);
-    const [doneTaskCount, setDoneTaskCount] = useState(0);
-    const [lateTaskCount, setLateTaskCount] = useState(0);
-    const [earlyTaskCount, setEarlyTaskCount] = useState(0);
-    const [incompleteTask, setIncompleteTask] = useState(0);
-    const [performanceTaskPercentage, setPerformanceTaskPercentage] = useState(0);
+    const [userPerformances, setUserPerformances] = useState([]);
 
     const token = localStorage.getItem('token');
-    const userInfo = JSON.parse(localStorage.getItem('user_info'));
 
     // Function to calculate the number of workdays in a month
     const calculateWorkdays = (year, month) => {
@@ -41,67 +48,57 @@ const AllPerformances = () => {
         return workdays;
     };
 
-    // Get AllPerformances Status
-    const getPerformanceStatus = (percentage) => {
-        if (percentage < 60) {
-            return 'Tidak Memuaskan';
-        } else if (percentage >= 60 && percentage < 70) {
-            return 'Kurang Memuaskan';
-        } else if (percentage >= 70 && percentage <= 80) {
-            return 'Cukup Memuaskan';
-        } else if (percentage > 80 && percentage <= 90) {
-            return 'Memuaskan';
-        } else if (percentage > 90) {
-            return 'Sangat Memuaskan';
-        }
-        return '';
-    };
-
-    // Fetch permission data from API
-    const fetchPermissions = async () => {
-        const apiUrl = `http://localhost:8989/permissions`;
+    // Fetch users data from API
+    const fetchUsers = async () => {
+        const apiUrl = `${Config.BaseUrl}/users`;
         try {
             const response = await axios.get(apiUrl, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
-                params: {
-                    "status.eq": "confirm",
-                    "id_user.eq": userInfo?.id,
-                },
             });
 
             if (response.data.success) {
-                const permissions = response.data.data;
-                const filteredPermissions = permissions.filter((permission) => {
-                    const startDate = new Date(permission.start_date);
-                    const endDate = new Date(permission.end_date);
-                    return (
-                        startDate.getFullYear() === selectedYear &&
-                        startDate.getMonth() + 1 === selectedMonth &&
-                        endDate.getFullYear() === selectedYear &&
-                        endDate.getMonth() + 1 === selectedMonth
-                    );
-                });
+                const userData = response.data.data;
+                const userPerformances = [];
 
-                const totalLeaveDays = filteredPermissions.reduce(
-                    (total, permission) => total + permission.length_leave,
-                    0
-                );
+                // Loop through each user and fetch their data
+                for (let user of userData) {
+                    const idUser = user.id;
+                    const userPerformance = await getUserPerformance(idUser);
+                    userPerformances.push({
+                        name: user.name,
+                        attendancePercentage: userPerformance.attendancePercentage,
+                        taskPercentage: userPerformance.taskPercentage,
+                    });
+                }
 
-                setLeaveDaysCount(totalLeaveDays);
-                return totalLeaveDays;
+                setUserPerformances(userPerformances);
             }
         } catch (error) {
-            console.error("Error fetching permissions:", error);
-            return 0;
+            console.error("Error fetching users:", error);
         }
     };
 
-    // Fetch attendance data from API
-    const fetchAttendance = async () => {
-        const apiUrl = `http://localhost:8989/attendances`;
+    // Fetch user's attendance and task performance
+    const getUserPerformance = async (idUser) => {
+        const workdays = calculateWorkdays(selectedYear, selectedMonth);
+        
+        const attendanceData = await fetchAttendance(idUser);
+        const taskData = await fetchTask(idUser);
 
+        const attendancePercentage = calculateAttendancePercentage(workdays, attendanceData);
+        const taskPercentage = calculateTaskPercentage(taskData);
+
+        return {
+            attendancePercentage,
+            taskPercentage,
+        };
+    };
+
+    // Fetch attendance data
+    const fetchAttendance = async (idUser) => {
+        const apiUrl = `${Config.BaseUrl}/attendances`;
         try {
             const response = await axios.get(apiUrl, {
                 headers: {
@@ -109,129 +106,73 @@ const AllPerformances = () => {
                 },
                 params: {
                     "date.like": `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`,
-                    "id_user.eq": userInfo?.id,
+                    "id_user.eq": idUser,
                 },
             });
-
-            if (response.data.success) {
-                const attendanceData = response.data.data;
-                const clockInEntries = attendanceData.filter((entry) => entry.type === "clock_in");
-                const clockOutEntries = attendanceData.filter((entry) => entry.type === "clock_out");
-                const totalWorkingDays = calculateWorkdays(selectedYear, selectedMonth);
-
-                setAttendanceCount(clockInEntries.length);
-
-                const totalLateMinutes = clockInEntries
-                    .filter((entry) => entry.status === "late")
-                    .reduce((sum, entry) => sum + entry.minute_late, 0);
-
-                const totalEarlyMinutes = clockOutEntries
-                    .filter((entry) => entry.status === "early")
-                    .reduce((sum, entry) => sum + entry.minute_late, 0);
-
-                const daysPresent = [...new Set(clockInEntries.map((entry) => entry.date))].length;
-                const absentWithoutNotice = totalWorkingDays - daysPresent;
-
-                setLateMinutes(totalLateMinutes);
-                setEarlyLeaveMinutes(totalEarlyMinutes * -1);
-
-                const leaveDays = await fetchPermissions();
-                setAbsentWithoutNote(absentWithoutNotice - leaveDays);
-
-                calculatePerformance(
-                    totalWorkingDays,
-                    clockInEntries.length,
-                    totalLateMinutes,
-                    totalEarlyMinutes,
-                    leaveDays,
-                    absentWithoutNotice
-                );
-            } else {
-                console.error("Failed to fetch attendance data");
-            }
+            return response.data.data || [];
         } catch (error) {
             console.error("Error fetching attendance data:", error);
+            return [];
         }
     };
 
-    // Calculate performance percentage
-    const calculatePerformance = (
-        workdays,
-        attendedDays,
-        lateMinutes,
-        earlyLeaveMinutes,
-        leaveDays,
-        absentDays
-    ) => {
-        const totalMinutesWorkdays = workdays * 540; // Total minutes in workdays
-        const effectiveMinutes =
-            (attendedDays + leaveDays) * 540 - lateMinutes - earlyLeaveMinutes - absentDays * 540;
-        const percentage = Math.max(0, Math.round((effectiveMinutes / totalMinutesWorkdays) * 100));
-
-        setPerformanceAttPercentage(percentage);
-    };
-
-    const fetchTask = async () => {
-        const apiUrl = `http://localhost:8989/tasks`;
-
+    // Fetch task data
+    const fetchTask = async (idUser) => {
+        const apiUrl = `${Config.BaseUrl}/tasks`;
         try {
             const response = await axios.get(apiUrl, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
                 params: {
-                    "assign_to.eq": userInfo?.id,
+                    "assign_to.eq": idUser,
                     "due_date.like": `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`,
                 },
             });
-
-            if (response.data.success) {
-                const tasks = response.data.data;
-
-                const totalTasks = tasks.length;
-                const completedTasks = tasks.filter(task => task.status === 'completed').length;
-                const lateTasks = tasks.filter(task => 
-                    task.status === 'completed' && new Date(task.completed_at) > new Date(task.due_date)
-                ).length;
-                const earlyTasks = tasks.filter(task => 
-                    task.status === 'completed' && new Date(task.completed_at) < new Date(task.due_date)
-                ).length;
-                const incompleteTasks = tasks.filter(task => task.status !== 'completed').length;
-
-                const calc = completedTasks - (lateTasks * 0.5) - incompleteTask + (earlyTasks * 0.5)
-                let percentage = Math.max(0, Math.round((calc / totalTasks) * 100));
-
-                if (percentage > 100 ) {
-                    percentage = 100;
-                }
-
-                setTaskCount(totalTasks);
-                setDoneTaskCount(completedTasks);
-                setLateTaskCount(lateTasks);
-                setEarlyTaskCount(earlyTasks);
-                setIncompleteTask(incompleteTasks);
-                setPerformanceTaskPercentage(percentage)
-            } else {
-                console.log("Failed to fetch task data");
-            }
+            return response.data.data || [];
         } catch (error) {
-            setTaskCount(0);
-            setDoneTaskCount(0);
-            setLateTaskCount(0);
-            setEarlyTaskCount(0);
-            setIncompleteTask(0);
-            setPerformanceTaskPercentage(0)
-            console.log("Error fetching task data:", error);
+            console.error("Error fetching task data:", error);
+            return [];
         }
     };
 
+    // Calculate attendance percentage
+    const calculateAttendancePercentage = (workdays, attendanceData) => {
+        const totalMinutesWorkdays = workdays * 540; // Total minutes in workdays
+        const daysPresent = [...new Set(attendanceData.filter(entry => entry.type === "clock_in").map(entry => entry.date))].length;
+        const totalLateMinutes = attendanceData.filter(entry => entry.status === "late").reduce((sum, entry) => sum + entry.minute_late, 0);
+        const totalEarlyMinutes = attendanceData.filter(entry => entry.status === "early").reduce((sum, entry) => sum + entry.minute_late, 0);
+
+        const effectiveMinutes = (daysPresent * 540) - totalLateMinutes - totalEarlyMinutes;
+        return Math.max(0, Math.round((effectiveMinutes / totalMinutesWorkdays) * 100));
+    };
+
+    // Calculate task performance percentage
+    const calculateTaskPercentage = (tasks) => {
+        const totalTasks = tasks.length;
+        const completedTasks = tasks.filter(task => task.status === 'completed').length;
+        const lateTasks = tasks.filter(task => task.status === 'completed' && new Date(task.completed_at) > new Date(task.due_date)).length;
+        const earlyTasks = tasks.filter(task => task.status === 'completed' && new Date(task.completed_at) < new Date(task.due_date)).length;
+        const incompleteTasks = tasks.filter(task => task.status !== 'completed').length;
+
+        const performance = completedTasks - (lateTasks * 0.5) - incompleteTasks + (earlyTasks * 0.5);
+        let percentage = Math.max(0, Math.round((performance / totalTasks) * 100));
+        console.log(performance / totalTasks)
+
+        if (percentage > 100 ) {
+            percentage = 100;
+        }
+        if (performance == 0) {
+            percentage = 0;
+        }
+        return percentage;
+    };
+
     useEffect(() => {
-        const count = calculateWorkdays(selectedYear, selectedMonth);
-        setWorkdaysCount(count);
-        fetchAttendance();
-        fetchTask();
+        fetchUsers();
     }, [selectedYear, selectedMonth]);
 
+    console.log(userPerformances)
     return (
         <div className="container-fluid">
             <div className="d-sm-flex align-items-center justify-content-between mb-4">
@@ -279,6 +220,56 @@ const AllPerformances = () => {
                             <h6 className="m-0 font-weight-bold text-primary">Data Kinerja Karyawan</h6>
                         </div>
                         <div className="card-body">
+                            <DataTable
+                                className="table table-bordered display nowrap"
+                                id="dataTable"
+                                width="100%"
+                                cellSpacing="0"
+                                data={userPerformances}
+                                options={{
+                                    dom: 'Bfrtip',
+                                    processing: true,
+                                    paging: true,
+                                    searching: true,
+                                    ordering: true,
+                                    columns: [
+                                        { title: 'Nama Karyawan', data: 'name' },
+                                        { title: 'Persentase Kehadiran', data: 'attendancePercentage' },
+                                        { title: 'Persentase Kinerja', data: 'taskPercentage' },
+                                    ],
+                                }}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="row">
+                <div className="col-12">
+                    <div className="card shadow mb-4">
+                        <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 className="m-0 font-weight-bold text-primary">Data Kalkulasi Dengan Data</h6>
+                        </div>
+                        <div className="card-body">
+                            <DataTable
+                                className="table table-bordered display nowrap"
+                                id="dataTable"
+                                width="100%"
+                                cellSpacing="0"
+                                data={userPerformances}
+                                options={{
+                                    dom: 'Bfrtip',
+                                    processing: true,
+                                    paging: true,
+                                    searching: true,
+                                    ordering: true,
+                                    columns: [
+                                        { title: 'Nama Karyawan', data: 'name' },
+                                        { title: 'Persentase Kehadiran', data: 'attendancePercentage' },
+                                        { title: 'Persentase Kinerja', data: 'taskPercentage' },
+                                    ],
+                                }}
+                            />
                         </div>
                     </div>
                 </div>

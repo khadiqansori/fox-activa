@@ -193,23 +193,6 @@ function AttendanceLog() {
                                         paging: false,
                                         scrollX: true,
                                         ordering: false,
-                                        buttons: [
-                                            {
-                                                extend: 'copy',
-                                            },
-                                            {
-                                                extend: 'csv',
-                                            },
-                                            {
-                                                extend: 'excel',
-                                            },
-                                            {
-                                                extend: 'pdf',
-                                            },
-                                            {
-                                                extend: 'print',
-                                            },
-                                        ],
                                     }}
                                 >
                                     <thead>
