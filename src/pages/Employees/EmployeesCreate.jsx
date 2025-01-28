@@ -10,7 +10,6 @@ function EmployeesCreate() {
     const [password, setPassword] = useState('');
     const [role, setRole] = useState(0);
     const [address, setAddress] = useState('');
-    const [photo, setPhoto] = useState('');
 
     // Roles option
     const [roles, setRoles] = useState([]);
@@ -51,7 +50,6 @@ function EmployeesCreate() {
             password: password,
             role: role,
             address: address,
-            photo: photo, // Jika ada inputan photo
         };
 
         try {
@@ -164,17 +162,6 @@ function EmployeesCreate() {
                                         name="address"
                                         value={address}
                                         onChange={(e) => setAddress(e.target.value)}
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label htmlFor="photo" className="form-label">Photo</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        id="photo"
-                                        name="photo"
-                                        value={photo}
-                                        onChange={(e) => setPhoto(e.target.value)}
                                     />
                                 </div>
 

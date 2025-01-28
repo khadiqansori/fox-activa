@@ -38,6 +38,7 @@ const Employees = () => {
                 row.name,
                 row.phone,
                 row.email,
+                row.role_name.toUpperCase(),
                 `<div key=${row.id}>
                     <a href="/employees/update/${row.id}" class="nav-link btn btn-warning btn-icon-split mb-3">
                         <span class="icon text-white-50">
@@ -186,6 +187,7 @@ const Employees = () => {
                                             <th>Nama Lengkap</th>
                                             <th>No. HP</th>
                                             <th>Email</th>
+                                            <th>Posisi</th>
                                             <th className="nowrap">Aksi</th>
                                         </tr>
                                     </thead>

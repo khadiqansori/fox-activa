@@ -21,7 +21,7 @@ const Attendances = () => {
     const userInfo = JSON.parse(localStorage.getItem('user_info'))
     const referenceLatitude = -6.166057;
     const referenceLongitude = 106.810325;
-    const radius = 500; // 50 meters
+    const radius = 50000000000; // 500 meters
 
     // Haversine formula to calculate distance
     const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -173,6 +173,13 @@ const Attendances = () => {
             return;
         }
 
+        if (hour < 18) {
+            const isConfirmed = window.confirm("Apakah Anda yakin ingin melakukan Clock Out lebih cepat?");
+            if (!isConfirmed) {
+                return;
+            }
+        }
+
         const token = localStorage.getItem('token');
         const time = `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")} ${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}:${second.toString().padStart(2, "0")}`;
 
@@ -236,6 +243,8 @@ const Attendances = () => {
     useEffect(() => {
         days
     });
+
+
 
     return (
         <div className="container-fluid">

@@ -45,14 +45,14 @@ function PermissionTypesCreate() {
     return (
         <div className="container-fluid">
             <div className="d-sm-flex align-items-center justify-content-between mb-4">
-                <h1 className="h3 mb-0 text-gray-800">Tambah Jenis Izin</h1>
+                <h1 className="h3 mb-0 text-gray-800">Tambah Jenis Izin / Cuti</h1>
             </div>
 
             <div className="row">
                 <div className="col-12">
                     <div className="card shadow mb-4">
                         <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                            <h6 className="m-0 font-weight-bold text-primary">Form Tambah Jenis Izin</h6>
+                            <h6 className="m-0 font-weight-bold text-primary">Form Tambah Jenis Izin / Cuti</h6>
                         </div>
                         <div className="card-body">
                             <form onSubmit={handleSubmit}>

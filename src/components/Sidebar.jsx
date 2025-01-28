@@ -30,7 +30,7 @@ const Master = () => {
             </li>
 
             <li className="nav-item">
-                <NavLink className="nav-link" to="/external-assesments">
+                <NavLink className="nav-link" to="/external-assessments">
                     <i className="fas fa-fw fa-clipboard-list"></i>
                     <span>Kinerja Eks. Karyawan</span></NavLink>
             </li>

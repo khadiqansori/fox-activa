@@ -1,9 +1,194 @@
+import axios from 'axios';
+import { useState, useEffect } from 'react';
+import Config from './Config';
+// import Attendances from './Attendances/Attendances';
+
 const HomePage = () => {
+    const token = localStorage.getItem('token');
+    const userInfo = JSON.parse(localStorage.getItem('user_info'));
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth() + 1;
+    const day = today.getDate();
+
+    const [attendanceData, setAttendanceData] = useState([]);
+    const [attendanceCount, setAttendanceCount] = useState(0);
+    const [taskPerentage, setTaskPercentage] = useState(0);
+    const [requestCount, setRequestCount] = useState(0);
+    const [leaveLeft, setLeaveLeft] = useState(0);
+
+    const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+    const formatTwoDigits = (number) => number.toString().padStart(2, "0");
+    const isWeekend = (day) => {
+        const date = new Date(currentYear, currentMonth - 1, day);
+        const dayOfWeek = date.getDay();
+        return dayOfWeek === 6 || dayOfWeek === 0
+    };
+
+    // Fetch attendance data from API
+    const fetchAttendance = async () => {
+        const apiUrl = `${Config.BaseUrl}/attendances`;
+
+        try {
+            const response = await axios.get(apiUrl, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                params: {
+                    "date.like": `${currentYear}-${String(currentMonth).padStart(2, '0')}`,
+                    "id_user.eq": userInfo?.id,
+                },
+            });
+
+            if (response.data.success) {
+                const attendanceData = response.data.data;
+                const clockInEntries = attendanceData.filter((entry) => entry.type === "clock_in");
+
+                setAttendanceData(attendanceData)
+                setAttendanceCount(clockInEntries.length);
+            } else {
+                console.error("Failed to fetch attendance data");
+            }
+        } catch (error) {
+            console.error("Error fetching attendance data:", error);
+        }
+    };
+
+    // Fetch permission data from API
+    const fetchPermissions = async () => {
+        const apiUrl = `${Config.BaseUrl}/permissions`;
+        try {
+            const response = await axios.get(apiUrl, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                params: {
+                    "id_user.eq": userInfo?.id,
+                },
+            });
+
+            if (response.data.success) {
+                const permissions = response.data.data;
+                const confirmPermissions = permissions.filter((permission) => {
+                    const startDate = new Date(permission.start_date);
+                    const endDate = new Date(permission.end_date);
+                    const status = permission.status;
+                    return (
+                        startDate.getFullYear() === currentYear &&
+                        startDate.getMonth() + 1 === currentMonth &&
+                        endDate.getFullYear() === currentYear &&
+                        endDate.getMonth() + 1 === currentMonth && 
+                        status === "confirm"
+                    );
+                });
+                const requestPermissions = permissions.filter((permission) => {
+                    const startDate = new Date(permission.start_date);
+                    const endDate = new Date(permission.end_date);
+                    const status = permission.status;
+                    return (
+                        startDate.getFullYear() === currentYear &&
+                        startDate.getMonth() + 1 === currentMonth &&
+                        endDate.getFullYear() === currentYear &&
+                        endDate.getMonth() + 1 === currentMonth && 
+                        status === "request"
+                    );
+                });
+
+                const totalConfirm = confirmPermissions.length;
+                const totalRequest = requestPermissions.length;
+
+                setRequestCount(totalRequest);
+                setLeaveLeft(12 - totalConfirm)
+                return;
+            }
+        } catch (error) {
+            console.error("Error fetching permissions:", error);
+            return 0;
+        }
+    };
+
+    // Fetch taks data from API
+    const fetchTask = async () => {
+        const apiUrl = `${Config.BaseUrl}/tasks`;
+
+        try {
+            const response = await axios.get(apiUrl, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                params: {
+                    "id_user.eq": userInfo?.id,
+                    "due_date.like": `${currentYear}-${String(currentMonth).padStart(2, '0')}`,
+                },
+            });
+
+            if (response.data.success) {
+                const tasks = response.data.data;
+
+                const totalTasks = tasks.length;
+                const completedTasks = tasks.filter(task => task.status === 'completed').length;
+                
+                let percentage = Math.max(0, Math.round((completedTasks / totalTasks) * 100));
+
+                if (percentage > 100 ) {
+                    percentage = 100;
+                }
+
+                setTaskPercentage(percentage);
+            } else {
+                console.log("Failed to fetch task data");
+            }
+        } catch (error) {
+            console.log("Error fetching task data:", error);
+        }
+    };
+
+    const days = Array.from({ length: 1 }, () => {
+        const date = day;
+        const formattedDate = `${formatTwoDigits(date)}-${formatTwoDigits(currentMonth)}-${currentYear}`;
+        const dayName = dayNames[new Date(currentYear, currentMonth - 1, date).getDay()];
+        const dateFormat = `${currentYear}-${formatTwoDigits(currentMonth)}-${formatTwoDigits(date)}`;
+
+        let clockIn = "-"
+        let clockOut = "-"
+        let isLate = false
+
+        {attendanceData.map((item) => {
+            if (item.date == dateFormat) {
+                if (item.type == "clock_in") {
+                    clockIn = item.time
+
+                    if (item.minute_late > 0) {
+                        isLate = true
+                    }
+                } else if (item.type == "clock_out") {
+                    clockOut = item.time
+                }
+            }
+        })}
+
+        return {
+            date,
+            formattedDate,
+            dayName,
+            isWeekend: isWeekend(date),
+            clockIn,
+            clockOut,
+            isLate
+        };
+    });
+
+    useEffect(() => {
+        fetchAttendance();
+        fetchPermissions();
+        fetchTask();
+        days;
+    }, []);
+
     return (
         <div className="container-fluid">
             <div className="d-sm-flex align-items-center justify-content-between mb-4">
                 <h1 className="h3 mb-0 text-gray-800">Beranda</h1>
-                <a href="#" className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i className="fas fa-download fa-sm text-white-50"></i> Generate Report</a>
             </div>
 
             <div className="row">
@@ -13,8 +198,8 @@ const HomePage = () => {
                             <div className="row no-gutters align-items-center">
                                 <div className="col mr-2">
                                     <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                        Earnings (Monthly)</div>
-                                    <div className="h5 mb-0 font-weight-bold text-gray-800">$40,000</div>
+                                        Jumlah Kehadiran Bulan Ini</div>
+                                    <div className="h5 mb-0 font-weight-bold text-gray-800">{attendanceCount}</div>
                                 </div>
                                 <div className="col-auto">
                                     <i className="fas fa-calendar fa-2x text-gray-300"></i>
@@ -30,11 +215,11 @@ const HomePage = () => {
                             <div className="row no-gutters align-items-center">
                                 <div className="col mr-2">
                                     <div className="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                        Earnings (Annual)</div>
-                                    <div className="h5 mb-0 font-weight-bold text-gray-800">$215,000</div>
+                                        Sisa Cuti</div>
+                                    <div className="h5 mb-0 font-weight-bold text-gray-800">{leaveLeft}</div>
                                 </div>
                                 <div className="col-auto">
-                                    <i className="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                                    <i className="fas fa-heart fa-2x text-gray-300"></i>
                                 </div>
                             </div>
                         </div>
@@ -46,16 +231,16 @@ const HomePage = () => {
                         <div className="card-body">
                             <div className="row no-gutters align-items-center">
                                 <div className="col mr-2">
-                                    <div className="text-xs font-weight-bold text-info text-uppercase mb-1">Tasks
+                                    <div className="text-xs font-weight-bold text-info text-uppercase mb-1">Tugas Selesai
                                     </div>
                                     <div className="row no-gutters align-items-center">
                                         <div className="col-auto">
-                                            <div className="h5 mb-0 mr-3 font-weight-bold text-gray-800">50%</div>
+                                            <div className="h5 mb-0 mr-3 font-weight-bold text-gray-800">{taskPerentage}%</div>
                                         </div>
                                         <div className="col">
                                             <div className="progress progress-sm mr-2">
                                                 <div className="progress-bar bg-info" role="progressbar"
-                                                    style={{width: "50%"}} aria-valuenow="50" aria-valuemin="0"
+                                                    style={{width: taskPerentage + `%`}} aria-valuenow="50" aria-valuemin="0"
                                                     aria-valuemax="100"></div>
                                             </div>
                                         </div>
@@ -75,8 +260,8 @@ const HomePage = () => {
                             <div className="row no-gutters align-items-center">
                                 <div className="col mr-2">
                                     <div className="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                        Pending Requests</div>
-                                    <div className="h5 mb-0 font-weight-bold text-gray-800">18</div>
+                                        Permintaan Izin Tertunda</div>
+                                    <div className="h5 mb-0 font-weight-bold text-gray-800">{requestCount}</div>
                                 </div>
                                 <div className="col-auto">
                                     <i className="fas fa-comments fa-2x text-gray-300"></i>
@@ -86,215 +271,65 @@ const HomePage = () => {
                     </div>
                 </div>
             </div>
-
-            <div className="row">
-                <div className="col-xl-8 col-lg-7">
+            
+            <div className="row" id="sect-list-attendance">
+                <div className="col-12">
                     <div className="card shadow mb-4">
-                        <div
-                            className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                            <h6 className="m-0 font-weight-bold text-primary">Earnings Overview</h6>
-                            <div className="dropdown no-arrow">
-                                <a className="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i className="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                                </a>
-                                <div className="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                                    aria-labelledby="dropdownMenuLink">
-                                    <div className="dropdown-header">Dropdown Header:</div>
-                                    <a className="dropdown-item" href="#">Action</a>
-                                    <a className="dropdown-item" href="#">Another action</a>
-                                    <div className="dropdown-divider"></div>
-                                    <a className="dropdown-item" href="#">Something else here</a>
-                                </div>
-                            </div>
+                        <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 className="m-0 font-weight-bold text-primary">Daftar Absensi Hari Ini</h6>
                         </div>
                         <div className="card-body">
-                            <div className="chart-area">
-                                <canvas id="myAreaChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                            {days.map(({ date, clockIn, isLate }) => (
+                                <div key={date}>
+                                    {clockIn == "-" ? 
+                                        <div className="alert alert-danger" role="alert">
+                                            Anda belum melakukan absensi hari ini.
+                                        </div>
+                                    : ""}
 
-                <div className="col-xl-4 col-lg-5">
-                    <div className="card shadow mb-4">
-                        <div
-                            className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                            <h6 className="m-0 font-weight-bold text-primary">Revenue Sources</h6>
-                            <div className="dropdown no-arrow">
-                                <a className="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i className="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                                </a>
-                                <div className="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                                    aria-labelledby="dropdownMenuLink">
-                                    <div className="dropdown-header">Dropdown Header:</div>
-                                    <a className="dropdown-item" href="#">Action</a>
-                                    <a className="dropdown-item" href="#">Another action</a>
-                                    <div className="dropdown-divider"></div>
-                                    <a className="dropdown-item" href="#">Something else here</a>
+                                    {isLate ? 
+                                        <div className="alert alert-warning" role="alert">
+                                            Hari ini anda datang terlambat.
+                                        </div>
+                                    :   <div className="alert alert-success" role="alert">
+                                            Hari ini anda datang tepat waktu.
+                                        </div>
+                                    }
                                 </div>
-                            </div>
-                        </div>
-                        <div className="card-body">
-                            <div className="chart-pie pt-4 pb-2">
-                                <canvas id="myPieChart"></canvas>
-                            </div>
-                            <div className="mt-4 text-center small">
-                                <span className="mr-2">
-                                    <i className="fas fa-circle text-primary"></i> Direct
-                                </span>
-                                <span className="mr-2">
-                                    <i className="fas fa-circle text-success"></i> Social
-                                </span>
-                                <span className="mr-2">
-                                    <i className="fas fa-circle text-info"></i> Referral
-                                </span>
+                            ))}
+                            <div className="table-responsive">
+                                <table className="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Tanggal</th>
+                                            <th>Clock In</th>
+                                            <th>Clock Out</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {days.map(({ date, formattedDate, dayName, isWeekend, clockIn, clockOut, isLate }) => (
+                                            <tr key={date}>
+                                                <td
+                                                    style={{
+                                                        color: isWeekend ? "red" : "black",
+                                                    }}
+                                                ><b>{dayName}</b>, {formattedDate}</td>
+                                                <td
+                                                    style={{
+                                                        color: isLate ? "red" : "black"
+                                                    }}
+                                                >{clockIn}</td>
+                                                <td>{clockOut}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="row">
-                <div className="col-lg-6 mb-4">
-                    <div className="card shadow mb-4">
-                        <div className="card-header py-3">
-                            <h6 className="m-0 font-weight-bold text-primary">Projects</h6>
-                        </div>
-                        <div className="card-body">
-                            <h4 className="small font-weight-bold">Server Migration <span
-                                    className="float-right">20%</span></h4>
-                            <div className="progress mb-4">
-                                <div className="progress-bar bg-danger" role="progressbar" style={{width: "20%"}}
-                                    aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <h4 className="small font-weight-bold">Sales Tracking <span
-                                    className="float-right">40%</span></h4>
-                            <div className="progress mb-4">
-                                <div className="progress-bar bg-warning" role="progressbar" style={{width: "40%"}}
-                                    aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <h4 className="small font-weight-bold">Customer Database <span
-                                    className="float-right">60%</span></h4>
-                            <div className="progress mb-4">
-                                <div className="progress-bar" role="progressbar" style={{width: "60%"}}
-                                    aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <h4 className="small font-weight-bold">Payout Details <span
-                                    className="float-right">80%</span></h4>
-                            <div className="progress mb-4">
-                                <div className="progress-bar bg-info" role="progressbar" style={{width: "80%"}}
-                                    aria-valuenow="80" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <h4 className="small font-weight-bold">Account Setup <span
-                                    className="float-right">Complete!</span></h4>
-                            <div className="progress">
-                                <div className="progress-bar bg-success" role="progressbar" style={{width: "100%"}}
-                                    aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="row">
-                        <div className="col-lg-6 mb-4">
-                            <div className="card bg-primary text-white shadow">
-                                <div className="card-body">
-                                    Primary
-                                    <div className="text-white-50 small">#4e73df</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-lg-6 mb-4">
-                            <div className="card bg-success text-white shadow">
-                                <div className="card-body">
-                                    Success
-                                    <div className="text-white-50 small">#1cc88a</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-lg-6 mb-4">
-                            <div className="card bg-info text-white shadow">
-                                <div className="card-body">
-                                    Info
-                                    <div className="text-white-50 small">#36b9cc</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-lg-6 mb-4">
-                            <div className="card bg-warning text-white shadow">
-                                <div className="card-body">
-                                    Warning
-                                    <div className="text-white-50 small">#f6c23e</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-lg-6 mb-4">
-                            <div className="card bg-danger text-white shadow">
-                                <div className="card-body">
-                                    Danger
-                                    <div className="text-white-50 small">#e74a3b</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-lg-6 mb-4">
-                            <div className="card bg-secondary text-white shadow">
-                                <div className="card-body">
-                                    Secondary
-                                    <div className="text-white-50 small">#858796</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-lg-6 mb-4">
-                            <div className="card bg-light text-black shadow">
-                                <div className="card-body">
-                                    Light
-                                    <div className="text-black-50 small">#f8f9fc</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-lg-6 mb-4">
-                            <div className="card bg-dark text-white shadow">
-                                <div className="card-body">
-                                    Dark
-                                    <div className="text-white-50 small">#5a5c69</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="col-lg-6 mb-4">
-                    <div className="card shadow mb-4">
-                        <div className="card-header py-3">
-                            <h6 className="m-0 font-weight-bold text-primary">Illustrations</h6>
-                        </div>
-                        <div className="card-body">
-                            <div className="text-center">
-                                <img className="img-fluid px-3 px-sm-4 mt-3 mb-4" style={{width: "25rem"}}
-                                    src="src/assets/img/undraw_posting_photo.svg" alt="..." />
-                            </div>
-                            <p>Add some quality, svg illustrations to your project courtesy of <a
-                                    target="_blank" rel="nofollow" href="https://undraw.co/">unDraw</a>, a
-                                constantly updated collection of beautiful svg images that you can use
-                                completely free and without attribution!</p>
-                            <a target="_blank" rel="nofollow" href="https://undraw.co/">Browse Illustrations on
-                                unDraw &rarr;</a>
-                        </div>
-                    </div>
-                    <div className="card shadow mb-4">
-                        <div className="card-header py-3">
-                            <h6 className="m-0 font-weight-bold text-primary">Development Approach</h6>
-                        </div>
-                        <div className="card-body">
-                            <p>SB Admin 2 makes extensive use of Bootstrap 4 utility classes in order to reduce
-                                CSS bloat and poor page performance. Custom CSS classes are used to create
-                                custom components and custom utility classes.</p>
-                            <p className="mb-0">Before working with this theme, you should become familiar with the
-                                Bootstrap framework, especially the utility classes.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     )
 }

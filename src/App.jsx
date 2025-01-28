@@ -25,8 +25,8 @@ import PermissionCreate from './pages/Permissions/PermissionCreate.jsx';
 import PermissionUpdate from './pages/Permissions/PermissionUpdate.jsx';
 import AllPermissions from './pages/Permissions/AllPermissions.jsx';
 import AllPerformance from './pages/Performances/AllPerformance.jsx';
-import ExternalAssesments from './pages/ExternalAssesments/ExternalAssesments.jsx';
-import ExternalAssesmentsCreate from './pages/ExternalAssesments/ExternalAssesmentsCreate.jsx';
+import ExternalAssessments from './pages/ExternalAssessments/ExternalAssessments.jsx';
+import ExternalAssessmentsCreate from './pages/ExternalAssessments/ExternalAssesmentsCreate.jsx';
 
 const Logout = () => {
   localStorage.clear();
@@ -106,8 +106,8 @@ function App() {
                     <Route path="/task-management" element={<TaskManagement />} />
                     <Route path="/task-management/create" element={<TaskManagementCreate />} />
                     <Route path="/task-management/update/:id" element={<TaskManagementEdit />} />
-                    <Route path="/external-assesments" element={<ExternalAssesments />} />
-                    <Route path="/external-assesments/create/:id/:date" element={<ExternalAssesmentsCreate />} />
+                    <Route path="/external-assessments" element={<ExternalAssessments />} />
+                    <Route path="/external-assessments/create/:id/:date" element={<ExternalAssessmentsCreate />} />
                     <Route path="/logout" element={<Logout />} />
                   </Routes>
                 </MainLayout>

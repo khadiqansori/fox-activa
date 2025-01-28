@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useState, useEffect } from 'react';
+import Config from '../Config';
 
 const Performance = () => {
     const today = new Date();
@@ -59,7 +60,7 @@ const Performance = () => {
 
     // Fetch permission data from API
     const fetchPermissions = async () => {
-        const apiUrl = `http://localhost:8989/permissions`;
+        const apiUrl = `${Config.BaseUrl}/permissions`;
         try {
             const response = await axios.get(apiUrl, {
                 headers: {
@@ -100,7 +101,7 @@ const Performance = () => {
 
     // Fetch attendance data from API
     const fetchAttendance = async () => {
-        const apiUrl = `http://localhost:8989/attendances`;
+        const apiUrl = `${Config.BaseUrl}/attendances`;
 
         try {
             const response = await axios.get(apiUrl, {
@@ -163,16 +164,15 @@ const Performance = () => {
         leaveDays,
         absentDays
     ) => {
-        const totalMinutesWorkdays = workdays * 540; // Total minutes in workdays
-        const effectiveMinutes =
-            (attendedDays + leaveDays) * 540 - lateMinutes - earlyLeaveMinutes - absentDays * 540;
+        const totalMinutesWorkdays = (workdays - leaveDays) * 540;
+        const effectiveMinutes = attendedDays * 540 - lateMinutes + earlyLeaveMinutes - (absentDays - leaveDays) * 540;
         const percentage = Math.max(0, Math.round((effectiveMinutes / totalMinutesWorkdays) * 100));
 
         setPerformanceAttPercentage(percentage);
     };
 
     const fetchTask = async () => {
-        const apiUrl = `http://localhost:8989/tasks`;
+        const apiUrl = `${Config.BaseUrl}/tasks`;
 
         try {
             const response = await axios.get(apiUrl, {
@@ -180,7 +180,7 @@ const Performance = () => {
                     Authorization: `Bearer ${token}`,
                 },
                 params: {
-                    "assign_to.eq": userInfo?.id,
+                    "id_user.eq": userInfo?.id,
                     "due_date.like": `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`,
                 },
             });

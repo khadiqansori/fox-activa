@@ -55,6 +55,7 @@ function AttendanceLog() {
                 },
                 params: {
                     "date.gte": `${selectedYear}-${selectedMonth}-01`,
+                    "id_user.eq": userInfo.id
                 },
             });
 

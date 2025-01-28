@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import Config from "../Config";
 
-const ExternalAssesmentsCreate = () => {
+const ExternalAssessmentsCreate = () => {
     const [percentage, setPercentage] = useState("");
     const [reasons, setReasons] = useState("");
     const [loading, setLoading] = useState(false);
@@ -48,7 +48,7 @@ const ExternalAssesmentsCreate = () => {
                 setPercentage("");
                 setReasons("");
                 setTimeout(() => {
-                    window.location.href = "/external-assesments";
+                    window.location.href = "/external-assessments";
                 }, 2000);
             }
         } catch (error) {
@@ -126,7 +126,7 @@ const ExternalAssesmentsCreate = () => {
                                 >
                                     {loading ? "Mengirim..." : "Submit"}
                                 </button>
-                                <a href="/external-assesments" className="btn btn-warning ml-3">
+                                <a href="/external-assessments" className="btn btn-warning ml-3">
                                     Cancel
                                 </a>
                             </form>
@@ -138,4 +138,4 @@ const ExternalAssesmentsCreate = () => {
     );
 };
 
-export default ExternalAssesmentsCreate;
+export default ExternalAssessmentsCreate;

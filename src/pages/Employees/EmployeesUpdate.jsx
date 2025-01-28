@@ -11,7 +11,6 @@ const EmployeesUpdate = () => {
     const [email, setEmail] = useState('');
     const [role, setRole] = useState('');
     const [address, setAddress] = useState('');
-    const [photo, setPhoto] = useState('');
     const [roles, setRoles] = useState([]);
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
@@ -49,7 +48,6 @@ const EmployeesUpdate = () => {
                 setEmail(data.email);
                 setRole(data.role);
                 setAddress(data.address);
-                setPhoto(data.photo);
 
             } catch (error) {
                 setErrorMessage('Failed to load user data');
@@ -71,7 +69,6 @@ const EmployeesUpdate = () => {
             email: email,
             role: role,
             address: address,
-            photo: photo,
             enabled: true
         };
 
@@ -173,17 +170,6 @@ const EmployeesUpdate = () => {
                                         name="address"
                                         value={address}
                                         onChange={(e) => setAddress(e.target.value)}
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label htmlFor="photo" className="form-label">Photo</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        id="photo"
-                                        name="photo"
-                                        value={photo}
-                                        onChange={(e) => setPhoto(e.target.value)}
                                     />
                                 </div>
 

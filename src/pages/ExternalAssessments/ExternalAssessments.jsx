@@ -20,7 +20,7 @@ import 'datatables.net-buttons/js/buttons.html5.mjs';
 import 'datatables.net-buttons/js/buttons.print.mjs';
 import 'datatables.net-buttons/js/buttons.colVis.mjs';
 
-const ExternalAssesments = () => {
+const ExternalAssessments = () => {
     DataTable.use(DT);
 
     const today = new Date();
@@ -47,17 +47,17 @@ const ExternalAssesments = () => {
                 const userData = response.data.data;
                 const userPerformances = [];
 
-                const exData = await fetchExternalAssesment();
+                const exData = await fetchExternalAssessment();
 
                 // Loop through each user and fetch their data
                 for (let user of userData) {
                     const idUser = user.id;
-                    let idExternalAssesment = 0;
+                    let idExternalAssessment = 0;
                     let percentage = 0;
 
                     const getExData = exData.filter(task => task.id_user === idUser);
                     if (getExData.length > 0) {
-                        idExternalAssesment = getExData[0].id
+                        idExternalAssessment = getExData[0].id
                         percentage = getExData[0].percentage;
                     }
 
@@ -66,13 +66,13 @@ const ExternalAssesments = () => {
                         name: user.name,
                         externalPercentage: percentage + '%',
                         action: percentage === 0 
-                            ? `<a href="/external-assesments/create/${user.id}/${selectedYear}-${String(selectedMonth).padStart(2, '0')}" class="nav-link btn btn-primary btn-icon-split mb-3">
+                            ? `<a href="/external-assessments/create/${user.id}/${selectedYear}-${String(selectedMonth).padStart(2, '0')}" class="nav-link btn btn-primary btn-icon-split mb-3">
                                     <span class="icon text-white-50">
                                         <i class="fas fa-fw fa-plus"></i>
                                     </span>
                                     <span class="text">Input Nilai</span>
                                 </a>` 
-                            : `<a href="/external-assesments/update/${idExternalAssesment}" class="nav-link btn btn-warning btn-icon-split mb-3">
+                            : `<a href="/external-assessments/update/${idExternalAssessment}" class="nav-link btn btn-warning btn-icon-split mb-3">
                                     <span class="icon text-white-50">
                                         <i class="fas fa-fw fa-pen"></i>
                                     </span>
@@ -88,8 +88,8 @@ const ExternalAssesments = () => {
         }
     };
 
-    // Fetch External Assesment data
-    const fetchExternalAssesment = async () => {
+    // Fetch External Assessment data
+    const fetchExternalAssessment = async () => {
         const apiUrl = `${Config.BaseUrl}/external-assessments`;
         try {
             const response = await axios.get(apiUrl, {
@@ -115,7 +115,7 @@ const ExternalAssesments = () => {
     return (
         <div className="container-fluid">
             <div className="d-sm-flex align-items-center justify-content-between mb-4">
-                <h1 className="h3 mb-0 text-gray-800">Tinjauan Kinerja Karyawan</h1>
+                <h1 className="h3 mb-0 text-gray-800">Tinjauan Kinerja Eksternal Karyawan</h1>
             </div>
 
             <div className="row mb-3">
@@ -156,7 +156,7 @@ const ExternalAssesments = () => {
                 <div className="col-12">
                     <div className="card shadow mb-4">
                         <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                            <h6 className="m-0 font-weight-bold text-primary">Data Kinerja Karyawan</h6>
+                            <h6 className="m-0 font-weight-bold text-primary">Data Kinerja Eksternal Karyawan</h6>
                         </div>
                         <div className="card-body">
                             <DataTable
@@ -186,4 +186,4 @@ const ExternalAssesments = () => {
     );
 };
 
-export default ExternalAssesments;
+export default ExternalAssessments;
