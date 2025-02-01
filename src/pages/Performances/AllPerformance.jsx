@@ -77,10 +77,10 @@ const AllPerformances = () => {
 
                     withPrioritys.push({
                         name: user.name,
-                        attendancePercentage: userPerformance.attendancePercentage/100*0.5,
-                        taskPercentage: userPerformance.taskPercentage/100*0.3,
-                        externalAssessment: userPerformance.externalAssessmentPercentage/100*0.2,
-                        total: (userPerformance.attendancePercentage/100*0.5) + (userPerformance.taskPercentage/100*0.3) + (userPerformance.externalAssessmentPercentage/100*0.2),
+                        attendancePercentage: (userPerformance.attendancePercentage/100*0.5).toFixed(2),
+                        taskPercentage: (userPerformance.taskPercentage/100*0.3).toFixed(2),
+                        externalAssessment: (userPerformance.externalAssessmentPercentage/100*0.2).toFixed(2),
+                        total: ((userPerformance.attendancePercentage/100*0.5) + (userPerformance.taskPercentage/100*0.3) + (userPerformance.externalAssessmentPercentage/100*0.2)).toFixed(2),
                     });
                 }
 
@@ -117,9 +117,9 @@ const AllPerformances = () => {
             externalAssessmentPercentage = externalAssessment[0].percentage;
         }
 
-        // Randomize number 70 - 100
+        // Randomize number 70 - 100 [Nanti di hapus]
         if (attendancePercentage == 0) {
-            attendancePercentage = Math.floor(Math.random() * (100 - 70 + 1)) + 70;
+            attendancePercentage = Math.round(Math.random() * (100 - 70 + 1)) + 70;
         }
         if (taskPercentage == 0) {
             taskPercentage = Math.floor(Math.random() * (100 - 70 + 1)) + 70;
@@ -154,7 +154,7 @@ const AllPerformances = () => {
 
     // Fetch permission data from API
     const fetchPermissions = async (idUser) => {
-        const apiUrl = `http://localhost:8989/permissions`;
+        const apiUrl = `${Config.BaseUrl}/permissions`;
         try {
             const response = await axios.get(apiUrl, {
                 headers: {
@@ -205,7 +205,7 @@ const AllPerformances = () => {
                     "due_date.like": `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`,
                 },
             });
-            return response.data.data || [];
+            return response.data.data.filter(task => task.id_user === idUser) || [];
         } catch (error) {
             console.error("Error fetching task data:", error);
             return [];
@@ -255,7 +255,6 @@ const AllPerformances = () => {
 
         const performance = completedTasks - (lateTasks * 0.5) - incompleteTasks + (earlyTasks * 0.5);
         let percentage = Math.max(0, Math.round((performance / totalTasks) * 100));
-        console.log(performance / totalTasks)
 
         if (percentage > 100 ) {
             percentage = 100;
@@ -359,6 +358,8 @@ const AllPerformances = () => {
                                                 </tr>
                                             </tbody>
                                         </table>
+
+                                        <h5>Intensitas Kepentingan : 5, 3, 2</h5>
                                     </div>
 
                                     <div className="col-6">

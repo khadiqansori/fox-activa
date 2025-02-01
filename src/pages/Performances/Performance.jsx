@@ -186,7 +186,7 @@ const Performance = () => {
             });
 
             if (response.data.success) {
-                const tasks = response.data.data;
+                const tasks = response.data.data.filter(task => task.id_user === userInfo.id);
 
                 const totalTasks = tasks.length;
                 const completedTasks = tasks.filter(task => task.status === 'completed').length;

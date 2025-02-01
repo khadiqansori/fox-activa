@@ -34,6 +34,9 @@ const TaskManagement = () => {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
+                params: {
+                    "id_user.eq": userInfo.id,
+                }
             });
     
             const today = new Date();

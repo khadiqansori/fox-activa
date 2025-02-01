@@ -55,7 +55,7 @@ const TaskManagementGroup = () => {
     const columns = [
         { title: "Status", data: "status" },
         { title: "Title", data: "title" },
-        { title: "Assign To", data: "assign_to" },
+        { title: "Assign To", data: "id_user" },
         { title: "Priority", data: "priority" },
         { title: "Due Date", data: "due_date" },
         {

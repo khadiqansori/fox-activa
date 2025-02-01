@@ -50,7 +50,7 @@ function TaskManagementCreate() {
         const data = {
             title: title,
             description: description,
-            assign_to: Number(assignTo),
+            id_user: Number(assignTo),
             assign_name: assignName,
             status: status,
             priority: priority,

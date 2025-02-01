@@ -54,7 +54,7 @@ function TaskManagementEdit() {
                 // Set data tugas ke state
                 setTitle(task.title || '');
                 setDescription(task.description || '');
-                setAssignTo(task.assign_to || '');
+                setAssignTo(task.id_user || '');
                 setAssignName(task.assign_name || '');
                 setStatus(task.status || 'open');
                 setPriority(task.priority || 'medium');
@@ -77,7 +77,7 @@ function TaskManagementEdit() {
             id: parseInt(id), // ID tugas yang sedang diedit
             title: title,
             description: description,
-            assign_to: Number(assignTo),
+            id_user: Number(assignTo),
             assign_name: assignName,
             status: status,
             priority: priority,

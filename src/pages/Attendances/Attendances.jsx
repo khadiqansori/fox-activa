@@ -21,7 +21,7 @@ const Attendances = () => {
     const userInfo = JSON.parse(localStorage.getItem('user_info'))
     const referenceLatitude = -6.166057;
     const referenceLongitude = 106.810325;
-    const radius = 50000000000; // 500 meters
+    const radius = 500; // 500 meters
 
     // Haversine formula to calculate distance
     const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -77,10 +77,14 @@ const Attendances = () => {
         const dateFormat = `${year}-${formatTwoDigits(month)}-${formatTwoDigits(day)}`;
 
         try {
-            const response = await axios.get(`${Config.BaseUrl}/attendances?date.eq=${dateFormat}` , {
+            const response = await axios.get(`${Config.BaseUrl}/attendances` , {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
+                params: {
+                    "date.eq": dateFormat,
+                    "id_user.eq": userInfo.id
+                }
             });
 
             setData(response.data.data);

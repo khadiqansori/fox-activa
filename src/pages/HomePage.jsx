@@ -125,8 +125,8 @@ const HomePage = () => {
             if (response.data.success) {
                 const tasks = response.data.data;
 
-                const totalTasks = tasks.length;
-                const completedTasks = tasks.filter(task => task.status === 'completed').length;
+                const totalTasks = tasks.filter(task => task.id_user === userInfo?.id).length;
+                const completedTasks = tasks.filter(task => task.status === 'completed' && task.id_user === userInfo?.id).length;
                 
                 let percentage = Math.max(0, Math.round((completedTasks / totalTasks) * 100));
 
@@ -279,22 +279,25 @@ const HomePage = () => {
                             <h6 className="m-0 font-weight-bold text-primary">Daftar Absensi Hari Ini</h6>
                         </div>
                         <div className="card-body">
-                            {days.map(({ date, clockIn, isLate }) => (
+                            {days.map(({ date, clockIn, clockOut, isLate }) => (
                                 <div key={date}>
                                     {clockIn == "-" ? 
                                         <div className="alert alert-danger" role="alert">
                                             Anda belum melakukan absensi hari ini.
                                         </div>
-                                    : ""}
-
-                                    {isLate ? 
+                                    : isLate ? 
                                         <div className="alert alert-warning" role="alert">
                                             Hari ini anda datang terlambat.
+                                        </div>
+                                    : clockOut !== "-" ?   
+                                        <div className="alert alert-info" role="alert">
+                                            Terima kasih atas kerja kerasnya, selamat beristirahat.
                                         </div>
                                     :   <div className="alert alert-success" role="alert">
                                             Hari ini anda datang tepat waktu.
                                         </div>
                                     }
+
                                 </div>
                             ))}
                             <div className="table-responsive">
