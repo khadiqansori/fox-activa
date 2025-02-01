@@ -5,7 +5,7 @@ import DT from 'datatables.net-dt';
 import JSZip from 'jszip';
 window.JSZip = JSZip;
 import Config from '../Config';
-import format from "date-fns";
+import { format } from "date-fns";
 
 import 'datatables.net-select-dt';
 import 'datatables.net-responsive-dt';
