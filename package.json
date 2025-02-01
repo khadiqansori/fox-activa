@@ -1,5 +1,6 @@
 {
   "name": "foxactivanew",
+  "homepage": "https://khadiqansori.github.io/fox-activa/",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,7 +8,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "axios": "^1.7.9",
@@ -22,6 +25,7 @@
     "datatables.net-react": "^1.0.0",
     "datatables.net-responsive-dt": "^3.0.3",
     "datatables.net-select-dt": "^2.1.0",
+    "gh-pages": "^6.3.0",
     "jszip": "^3.10.1",
     "jwt-decode": "^4.0.0",
     "pdfmake": "^0.2.18",

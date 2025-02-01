@@ -5,6 +5,7 @@ import DT from 'datatables.net-dt';
 import JSZip from 'jszip';
 window.JSZip = JSZip;
 import Config from '../Config';
+import format from "date-fns";
 
 import 'datatables.net-select-dt';
 import 'datatables.net-responsive-dt';
@@ -20,7 +21,6 @@ import 'datatables.net-buttons/js/buttons.html5.mjs';
 import 'datatables.net-buttons/js/buttons.print.mjs';
 import 'datatables.net-buttons/js/buttons.colVis.mjs';
 
-import { format } from "date-fns";
 
 const CleanDate = (isoDate) => {
     let result
